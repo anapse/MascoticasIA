@@ -10,6 +10,7 @@ import { soundService } from '../services/soundService';
 import { RenameModal } from '../components/RenameModal';
 import {
   SPONTANEOUS_PHRASES,
+  EXTRA_SPONTANEOUS_PHRASES,
   HUNGER_REQUESTS,
   LOW_ENERGY_PHRASES,
   BOREDOM_REQUESTS,
@@ -198,24 +199,26 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     return () => clearInterval(attentionInterval);
   }, [energy, boredom, isThinking]);
 
-  // 4. Spontaneous idle phrases (every 45s, low probability)
+  // 4. Spontaneous idle conversation. The pet talks by itself when the user leaves it alone.
+  // If ignored after a spontaneous comment, it reacts with a random annoyed/sleepy follow-up
+  // between 30 and 90 seconds. Any user activity cancels that reaction.
   useEffect(() => {
     const spontaneousInterval = setInterval(() => {
       if (isThinking || waitingForUserResponseRef.current) return;
 
       const idleDuration = Date.now() - lastInteractionTimeRef.current;
-      // Only trigger if user has been inactive for at least 30s
       if (idleDuration < 30000) return;
 
-      // 30% chance
-      if (Math.random() > 0.3) return;
+      // High enough to make the pet feel alive, without flooding the chat.
+      if (Math.random() > 0.7) return;
 
-      const personalityList = SPONTANEOUS_PHRASES[activePet.personality] || SPONTANEOUS_PHRASES.default;
+      const baseList = SPONTANEOUS_PHRASES[activePet.personality] || SPONTANEOUS_PHRASES.default;
+      const extraList = EXTRA_SPONTANEOUS_PHRASES[activePet.personality] || EXTRA_SPONTANEOUS_PHRASES.default;
+      const personalityList = [...baseList, ...extraList];
       const phrase = personalityList[Math.floor(Math.random() * personalityList.length)];
 
       setCurrentEmotion('feliz');
       setAnimationType('breathe');
-
       setMessages((prev) => [
         ...prev,
         {
@@ -229,49 +232,41 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
       waitingForUserResponseRef.current = true;
 
-      // If user ignores for 25 seconds: Step 1: Curioso ("¿Hola...? ¿Sigues ahí?")
+      // The pet waits a random 30-90 seconds before reacting to being ignored.
+      const waitMs = 30000 + Math.floor(Math.random() * 60001);
       ignoredStepTimerRef.current = setTimeout(() => {
         if (!waitingForUserResponseRef.current) return;
 
-        setCurrentEmotion('curioso');
-        setAnimationType('curious');
+        const isSleepy = activePet.personality === 'dormilon' || energy < 35;
+        const nextEmotion = isSleepy ? 'durmiendo' : 'molesto';
+        const nextText = isSleepy
+          ? IGNORED_PHRASES.sleepy
+          : [
+              IGNORED_PHRASES.molesto,
+              '¡Oye! Te estoy hablando. 😒',
+              '¿Hola? Creo que me estás ignorando... 😤',
+              'Bueno... me voy a enfadar un poquito. 😒',
+              '¿Tan ocupado estás que no puedes contestarme? 😤',
+              'Aquí sigo esperando tu respuesta. 🙄',
+            ][Math.floor(Math.random() * 6)];
+
+        setCurrentEmotion(nextEmotion);
+        setAnimationType(isSleepy ? 'sleep' : 'breathe');
         setMessages((prev) => [
           ...prev,
           {
-            id: `ign1_${Date.now()}`,
+            id: `ign_${Date.now()}`,
             role: 'pet',
-            text: IGNORED_PHRASES.first,
-            emotion: 'curioso',
+            text: nextText,
+            emotion: nextEmotion,
             timestamp: Date.now(),
           },
         ]);
 
-        // If user continues ignoring for another 25 seconds: Step 2: Molesto or Sleepy
-        ignoredStepTimerRef.current = setTimeout(() => {
-          if (!waitingForUserResponseRef.current) return;
-
-          const isSleepy = activePet.personality === 'dormilon' || energy < 40;
-          const nextEmotion = isSleepy ? 'durmiendo' : 'molesto';
-          const nextText = isSleepy ? IGNORED_PHRASES.sleepy : IGNORED_PHRASES.molesto;
-
-          setCurrentEmotion(nextEmotion);
-          setAnimationType(isSleepy ? 'sleep' : 'breathe');
-
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `ign2_${Date.now()}`,
-              role: 'pet',
-              text: nextText,
-              emotion: nextEmotion,
-              timestamp: Date.now(),
-            },
-          ]);
-
-          waitingForUserResponseRef.current = false;
-        }, 25000);
-      }, 25000);
-    }, 45000);
+        waitingForUserResponseRef.current = false;
+        ignoredStepTimerRef.current = null;
+      }, waitMs);
+    }, 30000);
 
     return () => clearInterval(spontaneousInterval);
   }, [activePet.personality, energy, isThinking]);
@@ -575,13 +570,6 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       <div className="w-full flex-1 flex flex-col items-center justify-center my-auto z-10 min-h-0">
         {/* Pet Name & Discreet Rename */}
         <div className="text-center mb-1 shrink-0">
-          <div className="flex justify-center mb-0.5">
-            <img
-              src={import.meta.env.BASE_URL + 'sprites/logo.png'}
-              alt="Mascoticas IA"
-              className="h-7 sm:h-8 w-auto object-contain drop-shadow-md"
-            />
-          </div>
           <div className="flex items-center justify-center gap-1">
             <h2 className="font-['Fredoka'] font-bold text-xl sm:text-2xl text-slate-900 drop-shadow-xs tracking-wide uppercase">
               {activePet.name}
