@@ -16,7 +16,7 @@ export async function processPetInteraction(
   // 1. Action: Feeding (Local resolution, NO Gemini call)
   if (actionType === 'care_feed') {
     return {
-      message: personality.sampleResponses.eating || `¡Ñam ñam! ¡Qué rico ${species.favoriteFood}! ❤️`,
+      message: '¡Qué rico! ❤️ Ahora me siento mucho mejor.',
       emotion: 'comiendo',
       source: 'local_care',
     };
@@ -25,7 +25,7 @@ export async function processPetInteraction(
   // 2. Action: Sleeping (Local resolution, NO Gemini call)
   if (actionType === 'care_sleep') {
     return {
-      message: personality.sampleResponses.tired || 'Zzz... voy a descansar un ratito... zzz 😴',
+      message: 'Zzz... 😴 Necesito descansar.',
       emotion: 'durmiendo',
       source: 'local_care',
     };

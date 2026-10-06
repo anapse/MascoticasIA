@@ -121,8 +121,8 @@ export interface AiChatResponse {
 
 export interface ChatMessage {
   id: string;
-  sender: 'pet' | 'user';
+  role: 'user' | 'pet';
   text: string;
   emotion?: EmotionType;
-  timestamp: string;
+  timestamp: number;
 }

@@ -3,6 +3,7 @@ import { PetSpeciesKey, PlayerModel, PetModel } from '../types/pet';
 import { INITIAL_AVAILABLE_SPECIES, PET_CATALOG, getPetSpecies } from '../pets/petConfig';
 import { getPersonality } from '../pets/personalities';
 import { createPet } from '../services/storage';
+import { SpriteSheetRenderer } from '../components/SpriteSheetRenderer';
 
 interface PetSelectionScreenProps {
   player: PlayerModel;
@@ -125,8 +126,8 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
                       : 'bg-white/80 hover:bg-amber-100/60 text-slate-700 border border-amber-200/50'
                   }`}
                 >
-                  <span className="text-2xl filter drop-shadow-sm">{def.speciesEmoji}</span>
-                  <span className="font-['Fredoka'] font-bold text-[10px] leading-tight mt-0.5">
+                  <SpriteSheetRenderer speciesKey={speciesKey} emotion="feliz" size="xs" />
+                  <span className="font-['Fredoka'] font-bold text-[10px] leading-tight mt-1">
                     {def.displayName}
                   </span>
                 </button>
@@ -138,8 +139,8 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
         {/* Selected Pet Highlight Preview */}
         <div className="mb-3 p-3 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50/70 border-2 border-amber-200 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl bg-amber-200/80 flex items-center justify-center text-3xl shadow-inner animate-pet-breathe shrink-0">
-              {currentSpeciesDef.speciesEmoji}
+            <div className="w-16 h-16 rounded-2xl bg-amber-100/80 flex items-center justify-center shadow-inner shrink-0 overflow-hidden">
+              <SpriteSheetRenderer speciesKey={selectedSpecies} emotion="feliz" size="sm" isAnimating />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">

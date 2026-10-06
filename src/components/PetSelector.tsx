@@ -1,7 +1,7 @@
 import React from 'react';
 import { PetModel } from '../types/pet';
-import { getPetSpecies } from '../pets/petConfig';
 import { MAX_PETS_PER_PLAYER } from '../services/storage';
+import { SpriteSheetRenderer } from './SpriteSheetRenderer';
 
 interface PetSelectorProps {
   pets: PetModel[];
@@ -22,20 +22,21 @@ export const PetSelector: React.FC<PetSelectorProps> = ({
     <div className="w-full flex items-center justify-between gap-2 overflow-x-auto no-scrollbar py-1">
       <div className="flex items-center gap-2">
         {pets.map((pet) => {
-          const species = getPetSpecies(pet.type);
           const isActive = pet.petId === activePetId;
           return (
             <div key={pet.petId} className="relative group">
               <button
                 type="button"
                 onClick={() => onSelectPet(pet.petId)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl font-['Fredoka'] font-bold text-sm transition-all duration-200 cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-2xl font-['Fredoka'] font-bold text-sm transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-amber-500 text-white shadow-md shadow-amber-200 ring-2 ring-amber-300 ring-offset-1'
-                    : 'bg-white/80 text-slate-700 hover:bg-amber-100/60 border border-amber-200/60'
+                    : 'bg-white/85 text-slate-700 hover:bg-amber-100/60 border border-amber-200/60'
                 }`}
               >
-                <span className="text-base">{species.speciesEmoji}</span>
+                <div className="w-6 h-6 flex items-center justify-center overflow-hidden">
+                  <SpriteSheetRenderer pet={pet} emotion="feliz" size="xs" />
+                </div>
                 <span>{pet.name}</span>
               </button>
 

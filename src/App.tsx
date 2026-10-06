@@ -85,12 +85,20 @@ export const App: React.FC = () => {
   const activePet = pets.find((p) => p.petId === activePetId) || pets[0];
 
   return (
-    <div className="w-screen h-screen max-h-[100dvh] overflow-hidden bg-slate-900 flex items-center justify-center">
+    <div className="w-screen h-[100vh] h-[100svh] overflow-hidden bg-slate-950 flex items-center justify-center relative select-none">
       {/* Ambient background glow on desktop */}
-      <div className="fixed inset-0 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-500 via-orange-950 to-slate-950" />
+      <div className="fixed inset-0 pointer-events-none opacity-25 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-500/30 via-orange-950/20 to-slate-950" />
 
-      {/* Strict 9:16 Aspect Ratio Responsive Sanctuary Container */}
-      <div className="relative h-full w-full max-w-[calc(100dvh*9/16)] max-h-[100dvh] aspect-[9/16] bg-amber-50 shadow-2xl flex flex-col justify-between overflow-hidden sm:rounded-3xl sm:border-4 sm:border-amber-300/40">
+      {/* Strict 9:16 Aspect Ratio Viewport Container (ancho = altura * 9 / 16) */}
+      <div
+        style={{
+          height: '100svh',
+          width: 'min(calc(100svh * 9 / 16), 100vw)',
+          maxHeight: '100svh',
+          aspectRatio: '9 / 16',
+        }}
+        className="relative bg-amber-50 shadow-2xl flex flex-col justify-between overflow-hidden sm:rounded-3xl sm:border-4 sm:border-amber-300/40"
+      >
         {loading && (
           <div className="w-full h-full flex items-center justify-center bg-amber-50">
             <div className="flex flex-col items-center gap-3">

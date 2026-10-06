@@ -1,6 +1,6 @@
 import React from 'react';
 import { PetModel } from '../types/pet';
-import { getPetSpecies } from '../pets/petConfig';
+import { SpriteSheetRenderer } from './SpriteSheetRenderer';
 
 interface AdoptModalProps {
   pet: PetModel | null;
@@ -16,14 +16,13 @@ export const AdoptModal: React.FC<AdoptModalProps> = ({
   onConfirm,
 }) => {
   if (!isOpen || !pet) return null;
-  const species = getPetSpecies(pet.type);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
       <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border-4 border-amber-300 text-center animate-scale-up">
-        {/* Modal Icon */}
-        <div className="w-16 h-16 mx-auto mb-4 bg-amber-100 rounded-full flex items-center justify-center text-3xl shadow-inner">
-          {species.speciesEmoji}
+        {/* Real Sprite Preview */}
+        <div className="w-20 h-20 mx-auto mb-3 bg-amber-50 rounded-2xl border border-amber-200 flex items-center justify-center overflow-hidden shadow-inner">
+          <SpriteSheetRenderer pet={pet} emotion="curioso" size="sm" />
         </div>
 
         {/* Modal Title */}

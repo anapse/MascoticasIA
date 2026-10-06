@@ -1,23 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import confetti from 'canvas-confetti';
-import { EmotionType, PetModel, PlayerModel } from '../types/pet';
+import { EmotionType, PetModel, PlayerModel, ChatMessage } from '../types/pet';
 import { getPetSpecies } from '../pets/petConfig';
 import { getPersonality } from '../pets/personalities';
 import { SpriteSheetRenderer } from '../components/SpriteSheetRenderer';
-import { SpeechBubble } from '../components/SpeechBubble';
-import { PetStatsBar } from '../components/PetStatsBar';
-import { QuickActions } from '../components/QuickActions';
+import { QuickActions, QuickActionKey } from '../components/QuickActions';
 import { PetSelector } from '../components/PetSelector';
 import { AdoptModal } from '../components/AdoptModal';
-import { SpriteManagerModal } from '../components/SpriteManagerModal';
 import { PetBackground } from '../components/PetBackground';
 import { processPetInteraction } from '../services/aiService';
-import {
-  adoptPet,
-  DAILY_AI_MESSAGE_LIMIT,
-  getDailyAiMessageCount,
-  updatePet,
-} from '../services/storage';
+import { adoptPet, updatePet } from '../services/storage';
 
 interface PetRoomScreenProps {
   player: PlayerModel;
@@ -41,218 +32,234 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
   const species = getPetSpecies(activePet.type);
   const personality = getPersonality(activePet.personality);
 
-  // States
-  const [currentEmotion, setCurrentEmotion] = useState<EmotionType>('saluda');
-  const [currentMessage, setCurrentMessage] = useState<string>('');
-  const [inputText, setInputText] = useState<string>('');
+  // Current Pet Emotion & Animation
+  const [currentEmotion, setCurrentEmotion] = useState<EmotionType>('feliz');
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [isThinking, setIsThinking] = useState<boolean>(false);
-  const [isTalking, setIsTalking] = useState<boolean>(false);
-  const [isEating, setIsEating] = useState<boolean>(false);
-  const [isSleeping, setIsSleeping] = useState<boolean>(false);
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
 
-  // Modals
+  // Real in-session chat conversation
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputText, setInputText] = useState<string>('');
+
+  // Modal for adoption confirmation
   const [petToAdoptOut, setPetToAdoptOut] = useState<PetModel | null>(null);
-  const [showSpriteModal, setShowSpriteModal] = useState<boolean>(false);
-  const [showQuestionsMenu, setShowQuestionsMenu] = useState<boolean>(false);
 
-  // AI Message Count
-  const [aiCount, setAiCount] = useState<number>(getDailyAiMessageCount(player.id));
-
-  // Chat Input Ref
+  // References
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Initial Daily Greeting
+  // Auto-scroll chat to bottom
+  const scrollToBottom = () => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isThinking]);
+
+  // Initial greeting message when switching/loading pet
   useEffect(() => {
     const greetingTemplate = personality.sampleResponses.greeting;
-    const personalizedGreeting = greetingTemplate.includes(player.nickname)
+    const greetingText = greetingTemplate.includes(player.nickname)
       ? greetingTemplate
       : `¡Hola, ${player.nickname}! 🐾 ${greetingTemplate}`;
 
-    setCurrentMessage(personalizedGreeting);
     setCurrentEmotion('saluda');
-    setIsTalking(true);
+    setIsAnimating(true);
+
+    const initialMsg: ChatMessage = {
+      id: `init_${Date.now()}`,
+      role: 'pet',
+      text: greetingText,
+      emotion: 'saluda',
+      timestamp: Date.now(),
+    };
+
+    setMessages([initialMsg]);
 
     const timer = setTimeout(() => {
-      setIsTalking(false);
+      setIsAnimating(false);
       setCurrentEmotion('feliz');
-    }, 4000);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [activePet.petId]);
 
-  // Handle Quick Action with Automatic Questions
-  const handleQuickAction = async (
-    actionKey: 'joke' | 'fact' | 'ask_menu' | 'learn' | 'game' | 'care_feed' | 'care_sleep'
-  ) => {
-    // 1. Ask Action: Focus input and open prompt helper
-    if (actionKey === 'ask_menu') {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-      setShowQuestionsMenu(true);
+  // Handle Quick Action Buttons
+  const handleQuickAction = async (actionKey: QuickActionKey) => {
+    // 1. Preguntar -> Focus input field directly
+    if (actionKey === 'ask') {
+      inputRef.current?.focus();
       return;
     }
 
-    // 2. Feeding Action (Local, NO Gemini call)
-    if (actionKey === 'care_feed') {
-      setIsEating(true);
+    // 2. Dar comida -> Local action only
+    if (actionKey === 'feed') {
       setCurrentEmotion('comiendo');
-      setIsThinking(true);
-
-      const updated = {
-        ...activePet,
-        hunger: Math.min(100, activePet.hunger + 30),
-        happiness: Math.min(100, activePet.happiness + 15),
-        experience: activePet.experience + 10,
-        level: activePet.experience + 10 >= activePet.level * 50 ? activePet.level + 1 : activePet.level,
-        lastFed: new Date().toISOString(),
-      };
-      await updatePet(updated);
-      onRefreshPets();
-
-      const response = await processPetInteraction(activePet, player, '', 'care_feed');
-      setIsThinking(false);
-      setCurrentMessage(response.message);
+      setIsAnimating(true);
 
       setTimeout(() => {
-        setIsEating(false);
         setCurrentEmotion('feliz');
-      }, 3500);
+        setIsAnimating(false);
+
+        const newMsg: ChatMessage = {
+          id: `feed_${Date.now()}`,
+          role: 'pet',
+          text: '¡Qué rico! ❤️ Ahora me siento mucho mejor.',
+          emotion: 'feliz',
+          timestamp: Date.now(),
+        };
+
+        setMessages((prev) => [...prev, newMsg]);
+
+        // Update pet local status
+        updatePet({
+          ...activePet,
+          hunger: Math.min(100, (activePet.hunger || 70) + 25),
+          happiness: Math.min(100, (activePet.happiness || 80) + 15),
+          lastFed: new Date().toISOString(),
+        });
+      }, 1500);
+
       return;
     }
 
-    // 3. Sleep Action (Local, NO Gemini call)
-    if (actionKey === 'care_sleep') {
-      setIsSleeping(true);
+    // 3. Dormir -> Local action only
+    if (actionKey === 'sleep') {
       setCurrentEmotion('durmiendo');
-      setIsThinking(true);
-
-      const updated = {
-        ...activePet,
-        energy: Math.min(100, activePet.energy + 40),
-        happiness: Math.min(100, activePet.happiness + 10),
-        lastSlept: new Date().toISOString(),
-      };
-      await updatePet(updated);
-      onRefreshPets();
-
-      const response = await processPetInteraction(activePet, player, '', 'care_sleep');
-      setIsThinking(false);
-      setCurrentMessage(response.message);
+      setIsAnimating(true);
 
       setTimeout(() => {
-        setIsSleeping(false);
-        setCurrentEmotion('feliz');
-      }, 4000);
+        setIsAnimating(false);
+
+        const newMsg: ChatMessage = {
+          id: `sleep_${Date.now()}`,
+          role: 'pet',
+          text: 'Zzz... 😴 Necesito descansar.',
+          emotion: 'durmiendo',
+          timestamp: Date.now(),
+        };
+
+        setMessages((prev) => [...prev, newMsg]);
+
+        updatePet({
+          ...activePet,
+          energy: Math.min(100, (activePet.energy || 70) + 30),
+          lastSlept: new Date().toISOString(),
+        });
+      }, 1500);
+
       return;
     }
 
-    // 4. Automatic Prompts: Joke, Fact, Learn, Game
+    // 4. Automated Actions: Chiste, Curiosidad, Aprende, Jugar
+    let promptText = '';
+    let actionType: 'joke' | 'fact' | 'learn' | 'game' = 'joke';
+
+    if (actionKey === 'joke') {
+      promptText = 'Cuéntame un chiste corto y divertido.';
+      actionType = 'joke';
+    } else if (actionKey === 'fact') {
+      promptText = 'Cuéntame una curiosidad corta e interesante.';
+      actionType = 'fact';
+    } else if (actionKey === 'learn') {
+      promptText = 'Enséñame algo corto y fácil de aprender hoy.';
+      actionType = 'learn';
+    } else if (actionKey === 'game') {
+      promptText = 'Propónme un juego corto que podamos hacer juntos.';
+      actionType = 'game';
+    }
+
+    // Add user prompt to chat
+    const userMsg: ChatMessage = {
+      id: `user_${Date.now()}`,
+      role: 'user',
+      text: promptText,
+      timestamp: Date.now(),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
     setCurrentEmotion('pensando');
 
-    let promptAction: 'joke' | 'fact' | 'game' | 'learn' = 'joke';
-    if (actionKey === 'joke') promptAction = 'joke';
-    else if (actionKey === 'fact') promptAction = 'fact';
-    else if (actionKey === 'game') promptAction = 'game';
-    else if (actionKey === 'learn') promptAction = 'learn';
+    try {
+      const response = await processPetInteraction(activePet, player, promptText, actionType);
 
-    const response = await processPetInteraction(activePet, player, '', promptAction);
-    setIsThinking(false);
-    setCurrentMessage(response.message);
-    setCurrentEmotion(response.emotion);
-    setIsTalking(true);
-    setAiCount(getDailyAiMessageCount(player.id));
+      setIsThinking(false);
+      setCurrentEmotion(response.emotion);
+      setIsAnimating(true);
 
-    if (response.emotion === 'risa' || response.emotion === 'sorpresa') {
-      confetti({
-        particleCount: 25,
-        spread: 50,
-        origin: { y: 0.6 },
-      });
+      const petMsg: ChatMessage = {
+        id: `pet_${Date.now()}`,
+        role: 'pet',
+        text: response.message,
+        emotion: response.emotion,
+        timestamp: Date.now(),
+      };
+
+      setMessages((prev) => [...prev, petMsg]);
+
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 2000);
+    } catch {
+      setIsThinking(false);
+      setCurrentEmotion('curioso');
     }
-
-    setTimeout(() => {
-      setIsTalking(false);
-    }, 4500);
   };
 
-  // Handle User Written Message
+  // Handle Free User Input Message
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const text = inputText.trim();
     if (!text || isThinking) return;
 
     setInputText('');
+
+    // Add user message to conversation
+    const userMsg: ChatMessage = {
+      id: `user_${Date.now()}`,
+      role: 'user',
+      text,
+      timestamp: Date.now(),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
     setCurrentEmotion('pensando');
 
-    const updated = {
-      ...activePet,
-      energy: Math.max(5, activePet.energy - 3),
-      hunger: Math.max(5, activePet.hunger - 2),
-      happiness: Math.min(100, activePet.happiness + 4),
-      experience: activePet.experience + 5,
-      level: activePet.experience + 5 >= activePet.level * 50 ? activePet.level + 1 : activePet.level,
-    };
-    await updatePet(updated);
-    onRefreshPets();
-
     try {
       const response = await processPetInteraction(activePet, player, text);
-      setIsThinking(false);
-      setCurrentMessage(response.message);
-      setCurrentEmotion(response.emotion);
-      setIsTalking(true);
-      setAiCount(getDailyAiMessageCount(player.id));
 
-      if (response.emotion === 'risa' || response.emotion === 'sorpresa') {
-        confetti({
-          particleCount: 20,
-          spread: 40,
-          origin: { y: 0.7 },
-        });
-      }
+      setIsThinking(false);
+      setCurrentEmotion(response.emotion);
+      setIsAnimating(true);
+
+      const petMsg: ChatMessage = {
+        id: `pet_${Date.now()}`,
+        role: 'pet',
+        text: response.message,
+        emotion: response.emotion,
+        timestamp: Date.now(),
+      };
+
+      setMessages((prev) => [...prev, petMsg]);
 
       setTimeout(() => {
-        setIsTalking(false);
-      }, 4000);
+        setIsAnimating(false);
+      }, 2000);
     } catch {
       setIsThinking(false);
-      setCurrentMessage(personality.sampleResponses.unknown);
       setCurrentEmotion('curioso');
+      const fallbackMsg: ChatMessage = {
+        id: `pet_fallback_${Date.now()}`,
+        role: 'pet',
+        text: 'Mmm... no estoy seguro de eso 😅',
+        emotion: 'curioso',
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => [...prev, fallbackMsg]);
     }
-  };
-
-  // Interactive Petting on Pet Tap
-  const handlePetAffection = async () => {
-    confetti({
-      particleCount: 25,
-      spread: 60,
-      origin: { y: 0.5 },
-    });
-
-    const updated = {
-      ...activePet,
-      happiness: Math.min(100, activePet.happiness + 8),
-      experience: activePet.experience + 3,
-    };
-    await updatePet(updated);
-    onRefreshPets();
-
-    setCurrentEmotion('feliz');
-    setIsTalking(true);
-    const petQuotes = [
-      `¡Ronroneo de felicidad! ❤️ ¡Gracias por el cariño, ${player.nickname}!`,
-      `¡Me encantan tus caricias! ✨`,
-      `¡Qué cosquillitas tan ricas! 😂`,
-    ];
-    setCurrentMessage(petQuotes[Math.floor(Math.random() * petQuotes.length)]);
-
-    setTimeout(() => {
-      setIsTalking(false);
-    }, 3000);
   };
 
   // Confirm Adoption Out
@@ -262,20 +269,13 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     onRefreshPets();
   };
 
-  // Save Custom Sprite URL
-  const handleSaveSprite = async (url: string) => {
-    const updated = { ...activePet, customSpriteUrl: url };
-    await updatePet(updated);
-    onRefreshPets();
-  };
-
   return (
     <div className="w-full h-full relative flex flex-col justify-between select-none overflow-hidden font-['Nunito']">
-      {/* Rich Habitat Background for this Pet with fondo.png */}
-      <PetBackground speciesKey={activePet.type} />
+      {/* Clean Background Image */}
+      <PetBackground />
 
-      {/* Top Navigation Bar with Official Logo */}
-      <header className="w-full bg-white/85 backdrop-blur-md px-3.5 py-1.5 shadow-sm border-b border-amber-200/70 z-30 flex items-center justify-between shrink-0">
+      {/* Top Header */}
+      <header className="w-full bg-white/85 backdrop-blur-md px-3.5 py-2 shadow-sm border-b border-amber-200/70 z-30 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-amber-100 p-0.5 flex items-center justify-center shadow-inner">
             <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
@@ -291,31 +291,19 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Sprite Sheet Manager button */}
-          <button
-            type="button"
-            onClick={() => setShowSpriteModal(true)}
-            title="Ajustar Sprite Sheet 3x3"
-            className="px-2.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-['Fredoka'] font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95"
-          >
-            <span>🎨</span>
-            <span className="text-[11px]">Sprites</span>
-          </button>
-
-          {/* Logout Button */}
           <button
             type="button"
             onClick={onLogout}
             title="Cerrar sesión"
             className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-['Fredoka'] font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95"
           >
-            <span>🚪</span>
+            <span>🚪 Salir</span>
           </button>
         </div>
       </header>
 
-      {/* Main Sanctuary Area */}
-      <main className="w-full flex-1 flex flex-col px-3 pt-2 pb-1 gap-2 justify-between overflow-hidden">
+      {/* Main Container */}
+      <main className="w-full flex-1 flex flex-col px-3 pt-1.5 pb-2 justify-between overflow-hidden gap-1.5">
         {/* Multi-Pet Selector */}
         <section className="w-full shrink-0">
           <PetSelector
@@ -327,45 +315,74 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           />
         </section>
 
-        {/* Pet Stats Bar */}
-        <section className="w-full shrink-0">
-          <PetStatsBar pet={activePet} />
+        {/* Pet Name & Species Header */}
+        <div className="w-full text-center shrink-0">
+          <h2 className="font-['Fredoka'] font-bold text-lg sm:text-xl text-amber-950 leading-tight">
+            {activePet.name}
+          </h2>
+          <span className="text-[11px] font-bold text-amber-800/80">
+            {species.displayName} • {personality.title}
+          </span>
+        </div>
+
+        {/* Central Pet Area */}
+        <section className="w-full shrink-0 flex flex-col items-center justify-center my-0">
+          <SpriteSheetRenderer
+            pet={activePet}
+            emotion={currentEmotion}
+            isAnimating={isAnimating}
+            size="md"
+            onClick={() => {
+              setCurrentEmotion('feliz');
+              setIsAnimating(true);
+              setTimeout(() => setIsAnimating(false), 1500);
+            }}
+            className="hover:scale-105 active:scale-95 transition-transform"
+          />
+          <div className="w-28 h-3 bg-amber-950/15 rounded-full blur-xs -mt-1 -z-10" />
         </section>
 
-        {/* Central Mascotica Presentation Area */}
-        <section
-          className={`relative w-full flex-1 flex flex-col items-center justify-center my-auto transition-all duration-300 ${
-            isKeyboardOpen ? 'scale-85 -translate-y-2' : 'scale-100'
-          }`}
-        >
-          {/* Speech Bubble on top of Pet */}
-          <div className="w-full mb-2 z-20">
-            <SpeechBubble
-              petName={activePet.name}
-              message={currentMessage}
-              emotion={currentEmotion}
-              isThinking={isThinking}
-            />
-          </div>
+        {/* Real In-Session Conversation Stream */}
+        <section className="w-full flex-1 min-h-[120px] bg-white/90 backdrop-blur-md rounded-2xl p-2.5 shadow-md border border-amber-200/80 flex flex-col justify-between overflow-hidden">
+          <div className="flex-1 overflow-y-auto pr-1 space-y-2 no-scrollbar">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+              >
+                <span className="text-[10px] font-bold text-slate-500 mb-0.5 px-1">
+                  {msg.role === 'user' ? 'Tú' : activePet.name}
+                </span>
+                <div
+                  className={`px-3 py-1.5 rounded-2xl max-w-[85%] text-xs sm:text-sm font-semibold break-words leading-relaxed shadow-xs ${
+                    msg.role === 'user'
+                      ? 'bg-amber-500 text-white rounded-tr-xs'
+                      : 'bg-amber-100 text-amber-950 rounded-tl-xs border border-amber-200'
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
 
-          {/* Interactive Pet Visual Canvas */}
-          <div className="relative flex flex-col items-center">
-            <SpriteSheetRenderer
-              pet={activePet}
-              emotion={currentEmotion}
-              isTalking={isTalking}
-              isEating={isEating}
-              isSleeping={isSleeping}
-              size="lg"
-              onClick={handlePetAffection}
-              className="hover:scale-105 active:scale-95 transition-transform"
-            />
-            {/* Subtle shadow ground beneath pet */}
-            <div className="w-32 h-3.5 bg-amber-950/15 rounded-full blur-sm -mt-2 -z-10" />
+            {/* Thinking Indicator */}
+            {isThinking && (
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-bold text-slate-500 mb-0.5 px-1">
+                  {activePet.name}
+                </span>
+                <div className="px-3 py-1.5 rounded-2xl bg-amber-50 text-slate-500 rounded-tl-xs border border-amber-200 text-xs italic flex items-center gap-1.5">
+                  <span>Pensando...</span>
+                  <span className="inline-flex gap-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:0.2s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce [animation-delay:0.4s]" />
+                  </span>
+                </div>
+              </div>
+            )}
 
-            <span className="text-[10px] font-bold text-amber-900/60 mt-1.5">
-              (Toca a {activePet.name} para darle cariñito ❤️)
-            </span>
+            <div ref={chatBottomRef} />
           </div>
         </section>
 
@@ -374,19 +391,17 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           <QuickActions onAction={handleQuickAction} disabled={isThinking} />
         </section>
 
-        {/* Text Input Bar */}
-        <section className="w-full bg-white/95 backdrop-blur-md rounded-2xl p-2 shadow-lg border-2 border-amber-200 shrink-0">
-          <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+        {/* Input Field & Send Button */}
+        <section className="w-full bg-white/95 backdrop-blur-md rounded-2xl p-1.5 shadow-md border-2 border-amber-200 shrink-0">
+          <form onSubmit={handleSendMessage} className="flex items-center gap-1.5">
             <input
               ref={inputRef}
               type="text"
               value={inputText}
-              onFocus={() => setIsKeyboardOpen(true)}
-              onBlur={() => setIsKeyboardOpen(false)}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder={`Escribe a ${activePet.name}...`}
-              maxLength={200}
-              className="flex-1 px-3 py-2 rounded-xl bg-amber-50/60 text-slate-800 font-['Nunito'] font-semibold text-xs sm:text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 border border-amber-200/60"
+              placeholder={`Escribe un mensaje a ${activePet.name}...`}
+              maxLength={150}
+              className="flex-1 px-3 py-2 rounded-xl bg-amber-50/60 text-slate-800 font-semibold text-xs sm:text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 border border-amber-200/60"
             />
             <button
               type="submit"
@@ -396,16 +411,6 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
               ➤
             </button>
           </form>
-
-          {/* Daily AI Message Counter */}
-          <div className="flex items-center justify-between px-2 pt-1 text-[10px] font-bold text-slate-500">
-            <span>
-              💬 Mensajes IA hoy: {DAILY_AI_MESSAGE_LIMIT - aiCount > 0 ? DAILY_AI_MESSAGE_LIMIT - aiCount : 0} / {DAILY_AI_MESSAGE_LIMIT}
-            </span>
-            <span className="text-amber-700">
-              {species.displayName} ({personality.title})
-            </span>
-          </div>
         </section>
       </main>
 
@@ -416,60 +421,6 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         onClose={() => setPetToAdoptOut(null)}
         onConfirm={handleConfirmAdoptOut}
       />
-
-      {/* Sprite Sheet 3x3 Manager Modal */}
-      <SpriteManagerModal
-        pet={activePet}
-        isOpen={showSpriteModal}
-        onClose={() => setShowSpriteModal(false)}
-        onSaveSpriteUrl={handleSaveSprite}
-      />
-
-      {/* Quick Prompts Modal */}
-      {showQuestionsMenu && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-xs bg-white rounded-3xl p-4 shadow-2xl border-4 border-amber-300">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
-              <h3 className="font-['Fredoka'] font-bold text-sm text-slate-800 flex items-center gap-1.5">
-                <span>🧠</span>
-                <span>Preguntas para {activePet.name}</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowQuestionsMenu(false)}
-                className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold flex items-center justify-center cursor-pointer text-xs"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 gap-1.5 max-h-60 overflow-y-auto pr-1 no-scrollbar">
-              {[
-                { title: '➕ ¿Cuánto es 5 × 5?', text: '¿Cuánto es 5 x 5?' },
-                { title: '🔤 ¿Cómo se dice gracias en francés?', text: '¿Cómo se dice gracias en francés?' },
-                { title: '🐾 ¿Por qué duermen tanto los koalas?', text: '¿Por qué duermen tanto los koalas?' },
-                { title: '🎮 ¿Cuál es tu videojuego favorito?', text: '¿Cuál es tu videojuego favorito?' },
-                { title: '🎌 ¿Conoces a Pikachu y Naruto?', text: '¿Conoces a Pikachu y Naruto?' },
-                { title: '🌟 ¿Por qué brillan las estrellas?', text: '¿Por qué brillan las estrellas en la noche?' },
-                { title: '🦖 ¿Existieron los dinosaurios voladores?', text: '¿Existieron los dinosaurios voladores?' },
-              ].map((q, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setShowQuestionsMenu(false);
-                    setInputText(q.text);
-                    if (inputRef.current) inputRef.current.focus();
-                  }}
-                  className="w-full p-2 text-left rounded-xl bg-amber-50/70 hover:bg-amber-100 font-['Nunito'] font-bold text-xs text-amber-950 border border-amber-200/80 transition-all cursor-pointer"
-                >
-                  {q.title}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
