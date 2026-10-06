@@ -102,7 +102,6 @@ export type PetAnimationType = 'breathe' | 'jump' | 'eat' | 'sleep' | 'laugh' | 
 interface SpriteSheetRendererProps {
   pet?: PetModel;
   speciesKey?: string;
-  spriteUrl?: string;
   emotion?: EmotionType;
   animationType?: PetAnimationType;
   isAnimating?: boolean;
@@ -114,7 +113,6 @@ interface SpriteSheetRendererProps {
 export const SpriteSheetRenderer: React.FC<SpriteSheetRendererProps> = ({
   pet,
   speciesKey,
-  spriteUrl: customUrl,
   emotion = 'feliz',
   animationType,
   isAnimating = false,
@@ -152,8 +150,7 @@ export const SpriteSheetRenderer: React.FC<SpriteSheetRendererProps> = ({
     hero: 'w-[min(68vw,280px)] h-[min(68vw,280px)] sm:w-72 sm:h-72',
   };
 
-  const spriteUrl =
-    customUrl || pet?.customSpriteUrl || species.spriteSheet || `/sprites/${species.type}.png`;
+  const spriteUrl = species.spriteSheet;
 
   const drawCell = (img: HTMLImageElement, index: number) => {
     const canvas = canvasRef.current;
