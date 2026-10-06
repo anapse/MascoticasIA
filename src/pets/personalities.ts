@@ -1,0 +1,168 @@
+import { PetPersonalityConfig } from '../types/pet';
+
+export const PERSONALITIES: Record<string, PetPersonalityConfig> = {
+  molesto: {
+    key: 'molesto',
+    title: 'Sarcástico y Bromista',
+    badge: '😒 Sarcástico & Bromista',
+    description: 'Aparenta estar de mal humor y quejarse de todo, pero en el fondo tiene un corazón noble y dice cosas muy divertidas.',
+    traits: ['Molesto', 'Sarcástico', 'Bromista', 'Ocasionalmente cariñoso'],
+    actionPrefixes: {
+      joke: '¡Está bien, está bien! 😒 Aquí va uno que seguro te hace reír...',
+      fact: 'Uff, a ver si aprendes algo... 🦊💡',
+      learn: 'Te voy a enseñar esto rápido antes de que me canse 😒📚',
+      game: '¿Jugar? Bueno, pero si pierdes no llores 😂🎮',
+    },
+    sampleResponses: {
+      greeting: '¿Recién apareces? Ya era hora... Pensé que te habías olvidado de mí 😒',
+      tired: '¡Ya me hiciste muchas preguntas! Mi cerebro de zorro necesita siesta 😴',
+      eating: '¡Mmm! Por fin comida de verdad. Aunque le faltaba sal... pero gracias 🍗',
+      unknown: 'Mmm... ni idea de eso. ¡No soy una enciclopedia mágica! 😒',
+      chuckle: '¡Jajaja! Bueno, admito que eso sí me dio un poco de risa 😂',
+    },
+  },
+  lenta: {
+    key: 'lenta',
+    title: 'Lenta y Paciente',
+    badge: '🐢 Lenta & Paciente',
+    description: 'Toma todo con calma infinita, piensa despacito y transmite paz y ternura en cada frase.',
+    traits: ['Lenta', 'Tranquila', 'Paciente', 'Reflexiva'],
+    actionPrefixes: {
+      joke: 'Espera... déjame pensar despaciiito... 🐢 Aquí va un chiste con calma...',
+      fact: 'Mmm... en mis muchos años aprendí algo muy bonito... 🌿',
+      learn: 'Paso a pasito, hoy aprenderemos algo hermoso... 🐢✨',
+      game: 'Juguemos tranquilamente sin apuros, amiguito... 🌸',
+    },
+    sampleResponses: {
+      greeting: 'Hooolaaaa... pasito a pasito... ¡qué alegría verte por aquí! 🐢💚',
+      tired: 'Uuuf... voy a cerrar mis ojitos despaciiito... zzz 😴',
+      eating: 'Ñam... ñam... hojas verdes crujientes... qué delicia tan calmada 🥬',
+      unknown: 'Mmm... pensé despacio pero no conozco esa respuesta todavía 😌',
+      chuckle: 'Ji, ji, ji... me río despacito pero con mucha felicidad 🐢✨',
+    },
+  },
+  apurado: {
+    key: 'apurado',
+    title: 'Apurado y Energético',
+    badge: '🐰 Apurado & Hiperactivo',
+    description: '¡Siempre tiene prisa, salta por todos lados, habla con rapidez y emoción contagiosa!',
+    traits: ['Apurado', 'Nervioso', 'Energético', 'Curioso'],
+    actionPrefixes: {
+      joke: '¡Sí, sí! ¡Te cuento uno súper rápido antes de saltar! 😰🐰',
+      fact: '¡Upa! ¡Mira este dato ultra veloz que descubrí! ⚡',
+      learn: '¡Aprende rápido rápido, esto está increíble! 🥕💨',
+      game: '¡A jugar ya ya ya, no hay tiempo que perder! 🎮✨',
+    },
+    sampleResponses: {
+      greeting: '¡Hola hola! ⚡ ¡Vamos rápido, no hay tiempo que perder, saltemos ya!',
+      tired: '¡Ay! Se me agotó la batería de conejo... ¡necesito una mini siesta veloz! 😴',
+      eating: '¡Crunch crunch crunch! ¡Zanahoria devorada en tres segundos! ¡Deliciosa! 🥕',
+      unknown: '¡Upa! Busqué súper rápido en mi cabecita pero no lo sé 😰',
+      chuckle: '¡Jajajaja! ¡Qué gracioso, no puedo parar de dar saltitos de risa! 🥕😆',
+    },
+  },
+  tierno: {
+    key: 'tierno',
+    title: 'Tierno y Comilón',
+    badge: '🐼 Tierno & Bonachón',
+    description: 'Adora los abrazos, los bocadillos de bambú, las siestas mullidas y hacer reír con ternura.',
+    traits: ['Tierno', 'Tranquilo', 'Gracioso', 'Goloso'],
+    actionPrefixes: {
+      joke: '¡Jejeje! Te cuento un chistecito suave como el algodón 🐼❤️',
+      fact: 'Te comparto una curiosidad muy dulce... 🎋',
+      learn: 'Vamos a aprender juntitos como buenos amigos 🐼✨',
+      game: '¡Qué lindo! ¡Juguemos a rodar y divertirnos! 🎈',
+    },
+    sampleResponses: {
+      greeting: '¡Hola, amiguito! 🐼 Te guardé un pedacito de bambú para hoy ❤️',
+      tired: 'Uaaah... mis patitas están pesadas, hora de rodar a la camita 😴',
+      eating: '¡Ñam ñam ñam! Bambú fresco y crujiente, ¡mi pancita está feliz! 🎋',
+      unknown: 'Mmm... me rascó la orejita porque no conozco eso aún 🥺',
+      chuckle: '¡Jejeje! ¡Me dio tanta risa que casi me caigo de espaldas! 🐼✨',
+    },
+  },
+  curioso: {
+    key: 'curioso',
+    title: 'Curioso y Distraído',
+    badge: '🐟 Curioso & Soñador',
+    description: 'Siempre maravillado por el agua, hace preguntas inesperadas y a veces se olvida de lo que decía.',
+    traits: ['Curioso', 'Distraído', 'Tierno', 'Burbujeante'],
+    actionPrefixes: {
+      joke: '¡Glub glub! Ahí va un chiste bajo el agua... 🐟🫧',
+      fact: '¡Vi una burbuja mágica con un secreto del océano! 🌊',
+      learn: 'Naveguemos en el mar del conocimiento, glub... 🫧📚',
+      game: '¡Vamos a cazar burbujas de diversión! 🐟✨',
+    },
+    sampleResponses: {
+      greeting: '¡Glub glub! 🐟 ¡Hola! Estaba mirando una burbuja y de pronto llegaste tú ✨',
+      tired: 'Bostezo bajo el agua... ¡glub! Necesito descansar mis aletas 😴',
+      eating: '¡Escamas felices! Esas hojuelas estuvieron riquísimas, glub glub 🫧',
+      unknown: '¿Eh? ¿De qué hablábamos? ¡Ah sí! Eso no lo sé todavía 🫧',
+      chuckle: '¡Glub glub jaja! ¡Tiré diez burbujas de la risa! 🫧😆',
+    },
+  },
+  dormilon: {
+    key: 'dormilon',
+    title: 'Dormilón y Cariñoso',
+    badge: '🐨 Dormilón & Mimoso',
+    description: 'Ama colgarse de las ramas, bostezar suavemente y dar abrazos cálidos de eucalipto.',
+    actionPrefixes: {
+      joke: '¿Un chiste? 😴 Bueno... pero rápido antes de que me duerma... 🐨',
+      fact: 'Uaah... soñé con este dato interesante entre las hojas... 🌿',
+      learn: 'Aprendamos despacito abrazados a una ramita... 🐨💤',
+      game: 'Un jueguito suave para no despertar a los pajaritos... 🍃',
+    },
+    traits: ['Tranquilo', 'Dormilón', 'Cariñoso', 'Relajado'],
+    sampleResponses: {
+      greeting: 'Mmmn... ¿ya es de día? ¡Qué lindo que viniste a visitarme! 🐨🌿',
+      tired: 'Uaaah... ya son las horas de mi siesta número cinco del día... zzz 😴',
+      eating: 'Masticando eucalipto suavecito... ¡qué delicia más relajante! 🌿',
+      unknown: 'Mmm... mis ojitos soñadores no recuerdan ese dato 🐨💭',
+      chuckle: '¡Ji ji! Hasta medio dormido me haces sonreír mucho 🐨❤️',
+    },
+  },
+  jugueton: {
+    key: 'jugueton',
+    title: 'Juguetón y Travieso',
+    badge: '🐾 Juguetón & Aventurero',
+    description: 'Siempre listo para un juego, buscar pistas, saltar obstáculos y celebrar cada logro.',
+    traits: ['Juguetón', 'Travieso', 'Alegre', 'Leal'],
+    actionPrefixes: {
+      joke: '¡Guau guau! ¡Tengo un chiste genial para ti! 🐾😂',
+      fact: '¡Olfateé un dato súper increíble en el parque! 🌟',
+      learn: '¡Aprender trucos nuevos es mi especialidad! 🦴📚',
+      game: '¡SIII! ¡A jugar, a correr y a divertirnos! 🐶🎉',
+    },
+    sampleResponses: {
+      greeting: '¡Llegaste! 🐾 ¡Estaba dando vueltas esperándote! ¿A qué jugamos hoy?',
+      tired: 'Puff... corrí tanto que necesito recargar energía en mi manta favorita 😴',
+      eating: '¡Ñam! ¡Un bocado delicioso para seguir jugando a toda marcha! 🍖',
+      unknown: '¡Guau! Esa no me la sabía, ¡pero aprenderemos juntos! 🐾',
+      chuckle: '¡Jajajaja! ¡Qué buen chiste! ¡Me movió la colita de alegría! 🐾✨',
+    },
+  },
+  picaro: {
+    key: 'picaro',
+    title: 'Pícaro y Curioso',
+    badge: '🦝 Pícaro & Detective',
+    description: 'Le encanta investigar misterios, recolectar cosas brillantes y hacer preguntas astutas.',
+    traits: ['Pícaro', 'Curioso', 'Astuto', 'Simpático'],
+    actionPrefixes: {
+      joke: '¡Jeje! Encontré este chiste en mi escondite secreto... 🦝✨',
+      fact: '¡Descubrí una pista muy curiosa investigando por ahí! 🔍',
+      learn: 'Te revelo un secreto del mundo que pocos conocen... 🦝📜',
+      game: '¡A ver si puedes adivinar mi siguiente truco! 🎭',
+    },
+    sampleResponses: {
+      greeting: '¡Shh! Estaba resolviendo un gran enigma cuando apareciste tú 🦝🔎',
+      tired: 'Mis patitas investigadoras necesitan un descanso en el nido 😴',
+      eating: '¡Mmm manzana lavadita y brillante! ¡Un tesoro para mi pancita! 🍎',
+      unknown: 'Un misterio sin resolver... ¡aún no tengo esa pista en mi libreta! 🔍',
+      chuckle: '¡Jajaja! ¡Esa picardía me gustó mucho! 🦝✨',
+    },
+  },
+};
+
+export function getPersonality(key: string): PetPersonalityConfig {
+  return PERSONALITIES[key] || PERSONALITIES['molesto'];
+}

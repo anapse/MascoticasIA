@@ -1,0 +1,6 @@
+{
+  "name": "Mascoticas IA",
+  "description": "Tool interactiva de mascotas virtuales infantiles con IA, personalidades únicas, animaciones expresivas y cuidado diario.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
