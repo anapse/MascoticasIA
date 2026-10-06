@@ -545,10 +545,10 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
       {/* Left Vertical Energy Bar (Energía) */}
       <div
-        className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-1 pointer-events-none"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 pointer-events-none"
         title={`Energía: ${energy}%`}
       >
-        <span className="text-[11px] font-bold text-amber-500 drop-shadow-xs">⚡</span>
+        <span className="px-1 rounded-full bg-white/90 border border-white text-[11px] font-bold text-amber-600 shadow-md">⚡</span>
         <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-white/65 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-white shadow-md ring-1 ring-black/15">
           <div
             className="w-full rounded-full bg-gradient-to-t from-amber-500 via-amber-400 to-yellow-300 transition-all duration-700"
@@ -559,10 +559,10 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
       {/* Right Vertical Boredom Bar (Aburrimiento) */}
       <div
-        className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-1 pointer-events-none"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 pointer-events-none"
         title={`Aburrimiento: ${boredom}%`}
       >
-        <span className="text-[10px] font-bold text-indigo-400 drop-shadow-xs">🫧</span>
+        <span className="px-1 rounded-full bg-white/90 border border-white text-[11px] font-bold text-indigo-600 shadow-md">🫧</span>
         <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-white/65 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-white shadow-md ring-1 ring-black/15">
           <div
             className={`w-full rounded-full transition-all duration-700 ${
