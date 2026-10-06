@@ -8,6 +8,8 @@ import { PetSpeciesDefinition, PetSpeciesKey } from '../types/pet';
  * - Do not add a species without a real supplied sprite.
  * - Sprite filenames are intentionally short and stable.
  */
+const ASSET_BASE = import.meta.env.BASE_URL;
+
 export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
   fox: {
     type: 'fox',
@@ -20,7 +22,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🍗',
     backgroundTheme: 'fox_forest',
     themeColor: { primary: '#ea580c', accent: '#fdba74', badgeBg: 'bg-orange-100 text-orange-800 border-orange-200', bubbleBg: 'bg-orange-50/90 border-orange-200', bgGradient: 'from-amber-100 via-orange-50 to-amber-200/80' },
-    spriteSheet: '/sprites/fox.png',
+    spriteSheet: `${ASSET_BASE}sprites/fox.png`,
   },
   turtle: {
     type: 'turtle',
@@ -33,7 +35,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🥬',
     backgroundTheme: 'turtle_zen',
     themeColor: { primary: '#16a34a', accent: '#86efac', badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-200', bubbleBg: 'bg-emerald-50/90 border-emerald-200', bgGradient: 'from-emerald-100 via-teal-50 to-emerald-200/80' },
-    spriteSheet: '/sprites/turtle.png',
+    spriteSheet: `${ASSET_BASE}sprites/turtle.png`,
   },
   raccoon: {
     type: 'raccoon',
@@ -46,7 +48,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🍎',
     backgroundTheme: 'raccoon_night',
     themeColor: { primary: '#52525b', accent: '#a1a1aa', badgeBg: 'bg-neutral-100 text-neutral-800 border-neutral-200', bubbleBg: 'bg-neutral-50/90 border-neutral-200', bgGradient: 'from-indigo-100 via-slate-50 to-violet-200/80' },
-    spriteSheet: '/sprites/raccoon.png',
+    spriteSheet: `${ASSET_BASE}sprites/raccoon.png`,
   },
   red_panda: {
     type: 'red_panda',
@@ -59,7 +61,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🍓',
     backgroundTheme: 'redpanda_cherry',
     themeColor: { primary: '#c2410c', accent: '#fdba74', badgeBg: 'bg-orange-100 text-orange-800 border-orange-200', bubbleBg: 'bg-orange-50/90 border-orange-200', bgGradient: 'from-rose-100 via-orange-50 to-amber-200/80' },
-    spriteSheet: '/sprites/red_panda.png',
+    spriteSheet: `${ASSET_BASE}sprites/red_panda.png`,
   },
   squirrel: {
     type: 'squirrel',
@@ -72,7 +74,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🌰',
     backgroundTheme: 'forest',
     themeColor: { primary: '#a16207', accent: '#facc15', badgeBg: 'bg-yellow-100 text-yellow-800 border-yellow-200', bubbleBg: 'bg-yellow-50/90 border-yellow-200', bgGradient: 'from-yellow-100 via-amber-50 to-orange-100' },
-    spriteSheet: '/sprites/squirrel.png',
+    spriteSheet: `${ASSET_BASE}sprites/squirrel.png`,
   },
   monkey: {
     type: 'monkey',
@@ -85,7 +87,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🍌',
     backgroundTheme: 'jungle',
     themeColor: { primary: '#92400e', accent: '#f59e0b', badgeBg: 'bg-amber-100 text-amber-800 border-amber-200', bubbleBg: 'bg-amber-50/90 border-amber-200', bgGradient: 'from-amber-100 via-yellow-50 to-orange-100' },
-    spriteSheet: '/sprites/monkey.png',
+    spriteSheet: `${ASSET_BASE}sprites/monkey.png`,
   },
   penguin: {
     type: 'penguin',
@@ -98,7 +100,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🐟',
     backgroundTheme: 'ice',
     themeColor: { primary: '#2563eb', accent: '#93c5fd', badgeBg: 'bg-blue-100 text-blue-800 border-blue-200', bubbleBg: 'bg-blue-50/90 border-blue-200', bgGradient: 'from-sky-100 via-white to-blue-100' },
-    spriteSheet: '/sprites/penguin.png',
+    spriteSheet: `${ASSET_BASE}sprites/penguin.png`,
   },
   panda: {
     type: 'panda',
@@ -111,7 +113,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🎋',
     backgroundTheme: 'bamboo',
     themeColor: { primary: '#166534', accent: '#86efac', badgeBg: 'bg-green-100 text-green-800 border-green-200', bubbleBg: 'bg-green-50/90 border-green-200', bgGradient: 'from-green-100 via-emerald-50 to-lime-100' },
-    spriteSheet: '/sprites/panda.png',
+    spriteSheet: `${ASSET_BASE}sprites/panda.png`,
   },
   fish: {
     type: 'fish',
@@ -124,7 +126,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🐠',
     backgroundTheme: 'aquarium',
     themeColor: { primary: '#0891b2', accent: '#67e8f9', badgeBg: 'bg-cyan-100 text-cyan-800 border-cyan-200', bubbleBg: 'bg-cyan-50/90 border-cyan-200', bgGradient: 'from-cyan-100 via-sky-50 to-blue-100' },
-    spriteSheet: '/sprites/fish.png',
+    spriteSheet: `${ASSET_BASE}sprites/fish.png`,
   },
   dragon: {
     type: 'dragon',
@@ -137,7 +139,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🍓',
     backgroundTheme: 'dragon',
     themeColor: { primary: '#7c3aed', accent: '#c4b5fd', badgeBg: 'bg-violet-100 text-violet-800 border-violet-200', bubbleBg: 'bg-violet-50/90 border-violet-200', bgGradient: 'from-violet-100 via-fuchsia-50 to-purple-100' },
-    spriteSheet: '/sprites/dragon.png',
+    spriteSheet: `${ASSET_BASE}sprites/dragon.png`,
   },
   cat: {
     type: 'cat',
@@ -150,7 +152,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🐟',
     backgroundTheme: 'garden',
     themeColor: { primary: '#db2777', accent: '#f9a8d4', badgeBg: 'bg-pink-100 text-pink-800 border-pink-200', bubbleBg: 'bg-pink-50/90 border-pink-200', bgGradient: 'from-pink-100 via-rose-50 to-fuchsia-100' },
-    spriteSheet: '/sprites/cat.png',
+    spriteSheet: `${ASSET_BASE}sprites/cat.png`,
   },
   koala: {
     type: 'koala',
@@ -163,7 +165,7 @@ export const PET_CATALOG: Record<PetSpeciesKey, PetSpeciesDefinition> = {
     foodEmoji: '🌿',
     backgroundTheme: 'eucalyptus',
     themeColor: { primary: '#65a30d', accent: '#bef264', badgeBg: 'bg-lime-100 text-lime-800 border-lime-200', bubbleBg: 'bg-lime-50/90 border-lime-200', bgGradient: 'from-lime-100 via-green-50 to-emerald-100' },
-    spriteSheet: '/sprites/koala.png',
+    spriteSheet: `${ASSET_BASE}sprites/koala.png`,
   },
 };
 
