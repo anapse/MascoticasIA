@@ -549,7 +549,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         title={`Energía: ${energy}%`}
       >
         <span className="px-1 rounded-full bg-white/90 border border-white text-[11px] font-bold text-amber-600 shadow-md">⚡</span>
-        <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-white/65 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-white shadow-md ring-1 ring-black/15">
+        <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-black/35 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-black/80 shadow-lg ring-1 ring-white/70">
           <div
             className="w-full rounded-full bg-gradient-to-t from-amber-500 via-amber-400 to-yellow-300 transition-all duration-700"
             style={{ height: `${energy}%` }}
@@ -563,14 +563,14 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         title={`Aburrimiento: ${boredom}%`}
       >
         <span className="px-1 rounded-full bg-white/90 border border-white text-[11px] font-bold text-indigo-600 shadow-md">🫧</span>
-        <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-white/65 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-white shadow-md ring-1 ring-black/15">
+        <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-black/35 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-black/80 shadow-lg ring-1 ring-white/70">
           <div
             className={`w-full rounded-full transition-all duration-700 ${
               boredom >= 60
                 ? 'bg-gradient-to-t from-rose-500 via-rose-400 to-amber-400'
                 : 'bg-gradient-to-t from-indigo-500 via-indigo-400 to-violet-300'
             }`}
-            style={{ height: `${boredom}%` }}
+            style={{ height: `${Math.max(boredom, 7)}%` }}
           />
         </div>
       </div>
@@ -579,6 +579,13 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       <div className="w-full flex-1 flex flex-col items-center justify-center my-auto z-10 min-h-0">
         {/* Pet Name & Discreet Rename */}
         <div className="text-center mb-1 shrink-0">
+          <div className="flex justify-center mb-0.5">
+            <img
+              src={import.meta.env.BASE_URL + 'sprites/logo.png'}
+              alt="Mascoticas IA"
+              className="h-7 sm:h-8 w-auto object-contain drop-shadow-md"
+            />
+          </div>
           <div className="flex items-center justify-center gap-1">
             <h2 className="font-['Fredoka'] font-bold text-xl sm:text-2xl text-slate-900 drop-shadow-xs tracking-wide uppercase">
               {activePet.name}
