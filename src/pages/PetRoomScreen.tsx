@@ -117,6 +117,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
     return () => {
       clearTimeout(timer);
+      soundService.stopDanceMusic();
       clearActionTimeout();
       clearIgnoredTimer();
       soundService.stopThinking();
