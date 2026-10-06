@@ -329,11 +329,21 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       return;
     }
 
-    // 2. Bailar (4.5s duration)
+    // 2. Bailar (20s duration)
     if (actionKey === 'dance') {
       soundService.playDance();
       setCurrentEmotion('saluda');
       setAnimationType('dance');
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `dance_start_${Date.now()}`,
+          role: 'pet',
+          text: '¡Sí! ¡Bailemos! 💃🎶',
+          emotion: 'saluda',
+          timestamp: Date.now(),
+        },
+      ]);
 
       const nextBoredom = Math.max(0, boredom - 35);
       setBoredom(nextBoredom);
@@ -353,7 +363,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
             timestamp: Date.now(),
           },
         ]);
-      }, 4500);
+      }, 20000);
 
       return;
     }
