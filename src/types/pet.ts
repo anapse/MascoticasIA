@@ -69,7 +69,7 @@ export interface PetSpeciesDefinition {
   };
   favoriteFood: string;
   foodEmoji: string;
-  spriteSheet?: string; // Default sprite sheet path
+  spriteSheet: string; // Required: every selectable species has a real supplied sheet
 }
 
 export interface PetModel {
