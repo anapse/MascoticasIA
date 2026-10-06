@@ -85,7 +85,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
         {/* Top Logo */}
         <div className="text-center mb-3">
           <div className="w-20 h-20 mx-auto">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-sm animate-pet-breathe" />
+            <img src={`${import.meta.env.BASE_URL}sprites/logo.png`} alt="Logo" className="w-full h-full object-contain drop-shadow-sm animate-pet-breathe" />
           </div>
         </div>
 
