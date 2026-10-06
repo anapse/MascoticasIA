@@ -395,7 +395,8 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     syncPetStats(energy, nextBoredom);
 
     try {
-      const response = await processPetInteraction(activePet, player, promptText, actionType);
+      const interactionPet = { ...activePet, energy, boredom };
+      const response = await processPetInteraction(interactionPet, player, promptText, actionType);
 
       setCurrentEmotion(response.emotion);
       if (response.emotion === 'risa') setAnimationType('laugh');
@@ -456,7 +457,8 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     syncPetStats(energy, nextBoredom);
 
     try {
-      const response = await processPetInteraction(activePet, player, text);
+      const interactionPet = { ...activePet, energy, boredom };
+      const response = await processPetInteraction(interactionPet, player, text);
 
       soundService.playSuccess();
       setIsThinking(false);
@@ -547,7 +549,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         title={`Energía: ${energy}%`}
       >
         <span className="text-[11px] font-bold text-amber-500 drop-shadow-xs">⚡</span>
-        <div className="w-2 sm:w-2.5 h-32 sm:h-40 bg-black/15 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border border-white/40 shadow-2xs">
+        <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-white/65 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-white shadow-md ring-1 ring-black/15">
           <div
             className="w-full rounded-full bg-gradient-to-t from-amber-500 via-amber-400 to-yellow-300 transition-all duration-700"
             style={{ height: `${energy}%` }}
@@ -561,7 +563,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         title={`Aburrimiento: ${boredom}%`}
       >
         <span className="text-[10px] font-bold text-indigo-400 drop-shadow-xs">🫧</span>
-        <div className="w-2 sm:w-2.5 h-32 sm:h-40 bg-black/15 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border border-white/40 shadow-2xs">
+        <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-white/65 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-white shadow-md ring-1 ring-black/15">
           <div
             className={`w-full rounded-full transition-all duration-700 ${
               boredom >= 60
