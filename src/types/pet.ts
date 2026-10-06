@@ -20,25 +20,16 @@ export interface EmotionCoordinate {
 export type PetSpeciesKey =
   | 'fox'
   | 'turtle'
-  | 'rabbit'
-  | 'panda'
-  | 'fish'
-  | 'koala'
-  | 'cat'
-  | 'dog'
-  | 'dragon'
-  | 'monkey'
-  | 'penguin'
   | 'raccoon'
   | 'red_panda'
   | 'squirrel'
-  | 'frog'
-  | 'hamster'
-  | 'lion'
-  | 'tiger'
-  | 'owl'
-  | 'bear'
-  | 'unicorn';
+  | 'monkey'
+  | 'penguin'
+  | 'panda'
+  | 'fish'
+  | 'dragon'
+  | 'cat'
+  | 'koala';
 
 export interface PetPersonalityConfig {
   key: string;
