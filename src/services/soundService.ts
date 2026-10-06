@@ -8,6 +8,7 @@ class SoundService {
   private thinkingOscillator: OscillatorNode | null = null;
   private thinkingGain: GainNode | null = null;
   private isMuted: boolean = false;
+  private danceTimer: ReturnType<typeof setInterval> | null = null;
 
   private getContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -185,35 +186,54 @@ class SoundService {
    * Dancing sound (upbeat rhythmic chime)
    */
   public playDance() {
+    this.startDanceMusic(20000);
+  }
+
+  /**
+   * Local dance loop: short musical patterns, randomly selected and repeated.
+   * Uses only Web Audio API; no external audio files or network requests.
+   */
+  public startDanceMusic(durationMs = 20000) {
     if (this.isMuted) return;
+    this.stopDanceMusic();
     const ctx = this.getContext();
     if (!ctx) return;
 
-    try {
-      const now = ctx.currentTime;
-      const notes = [
-        { f: 440, t: 0 },
-        { f: 554.37, t: 0.1 },
-        { f: 659.25, t: 0.2 },
-        { f: 880, t: 0.3 },
+    const playPattern = () => {
+      if (this.isMuted) return;
+      const patterns = [
+        [440, 554.37, 659.25, 554.37, 783.99, 659.25],
+        [523.25, 659.25, 783.99, 659.25, 880, 783.99],
+        [392, 493.88, 587.33, 493.88, 659.25, 587.33],
+        [659.25, 783.99, 880, 783.99, 659.25, 523.25],
       ];
-      notes.forEach((n) => {
+      const pattern = patterns[Math.floor(Math.random() * patterns.length)];
+      const now = ctx.currentTime;
+      pattern.forEach((freq, i) => {
+        const start = now + i * 0.16;
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(n.f, now + n.t);
-
-        gain.gain.setValueAtTime(0.09, now + n.t);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + 0.12);
-
+        osc.type = i % 2 === 0 ? 'triangle' : 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.045, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.13);
         osc.connect(gain);
         gain.connect(ctx.destination);
-
-        osc.start(now + n.t);
-        osc.stop(now + n.t + 0.12);
+        osc.start(start);
+        osc.stop(start + 0.14);
       });
-    } catch {}
+    };
+
+    playPattern();
+    this.danceTimer = setInterval(playPattern, 1100);
+    window.setTimeout(() => this.stopDanceMusic(), durationMs);
+  }
+
+  public stopDanceMusic() {
+    if (this.danceTimer) {
+      clearInterval(this.danceTimer);
+      this.danceTimer = null;
+    }
   }
 
   /**
