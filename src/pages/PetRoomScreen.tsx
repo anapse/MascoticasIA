@@ -15,6 +15,7 @@ import {
   LOW_ENERGY_PHRASES,
   BOREDOM_REQUESTS,
   IGNORED_PHRASES,
+  PET_ACTION_REQUESTS,
 } from '../data/localKnowledge';
 
 interface PetRoomScreenProps {
@@ -141,63 +142,84 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     return () => clearInterval(statsInterval);
   }, [isThinking]);
 
-  // 3. Periodic check every 2 minutes for attention/hunger request
+  // 3. Contextual needs: the pet asks for the exact action indicated by its bars.
+  // Checks often enough to feel alive, but never floods the conversation.
   useEffect(() => {
     const attentionInterval = setInterval(() => {
       if (isThinking || waitingForUserResponseRef.current) return;
+      if (Math.random() > 0.65) return;
 
-      // 40% probability to trigger request
-      if (Math.random() > 0.4) return;
+      let category: keyof typeof PET_ACTION_REQUESTS | null = null;
+      let emotion: EmotionType = 'curioso';
+      let animation: PetAnimationType = 'breathe';
 
-      if (energy < 40) {
-        const list = HUNGER_REQUESTS;
-        const phrase = list[Math.floor(Math.random() * list.length)];
-        setCurrentEmotion('comiendo');
-        setAnimationType('eat');
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `hunger_${Date.now()}`,
-            role: 'pet',
-            text: phrase,
-            emotion: 'comiendo',
-            timestamp: Date.now(),
-          },
-        ]);
-
-        clearActionTimeout();
-        actionTimeoutRef.current = setTimeout(() => {
-          setCurrentEmotion('feliz');
-          setAnimationType('breathe');
-        }, 3500);
-      } else if (boredom > 60) {
-        const list = BOREDOM_REQUESTS;
-        const phrase = list[Math.floor(Math.random() * list.length)];
-        setCurrentEmotion('curioso');
-        setAnimationType('curious');
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `bored_${Date.now()}`,
-            role: 'pet',
-            text: phrase,
-            emotion: 'curioso',
-            timestamp: Date.now(),
-          },
-        ]);
-
-        clearActionTimeout();
-        actionTimeoutRef.current = setTimeout(() => {
-          setCurrentEmotion('feliz');
-          setAnimationType('breathe');
-        }, 3000);
+      // Energy has priority: when low, the pet asks for food; when very low, sleep.
+      if (energy <= 25) {
+        category = 'sleepy';
+        emotion = 'durmiendo';
+        animation = 'sleep';
+      } else if (energy <= 45) {
+        category = 'hungry';
+        emotion = 'comiendo';
+        animation = 'eat';
+      } else if (boredom >= 65) {
+        category = 'bored';
+        emotion = 'curioso';
+        animation = 'curious';
+      } else {
+        category = Math.random() < 0.5 ? 'joke' : 'fact';
+        emotion = category === 'joke' ? 'risa' : 'curioso';
+        animation = category === 'joke' ? 'laugh' : 'curious';
       }
-    }, 120000); // 2 minutes
+
+      const list = PET_ACTION_REQUESTS[category];
+      const phrase = list[Math.floor(Math.random() * list.length)];
+
+      setCurrentEmotion(emotion);
+      setAnimationType(animation);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `request_${Date.now()}`,
+          role: 'pet',
+          text: phrase,
+          emotion,
+          timestamp: Date.now(),
+        },
+      ]);
+
+      waitingForUserResponseRef.current = true;
+
+      // The pet gets sad/annoyed if the requested action is ignored.
+      const waitMs = 30000 + Math.floor(Math.random() * 60001);
+      ignoredStepTimerRef.current = setTimeout(() => {
+        if (!waitingForUserResponseRef.current) return;
+
+        const isSleepy = energy <= 25 || activePet.personality === 'dormilon';
+        const nextEmotion: EmotionType = isSleepy ? 'durmiendo' : 'molesto';
+        const nextText = isSleepy
+          ? 'Zzz... necesitaba dormir. 😴 ¿Me ayudas con el botón Dormir?'
+          : '🥺 Te lo pedí porque de verdad lo necesitaba... ¿me haces caso?';
+
+        setCurrentEmotion(nextEmotion);
+        setAnimationType(isSleepy ? 'sleep' : 'breathe');
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `need_ignore_${Date.now()}`,
+            role: 'pet',
+            text: nextText,
+            emotion: nextEmotion,
+            timestamp: Date.now(),
+          },
+        ]);
+        waitingForUserResponseRef.current = false;
+        ignoredStepTimerRef.current = null;
+      }, waitMs);
+    }, 30000);
 
     return () => clearInterval(attentionInterval);
-  }, [energy, boredom, isThinking]);
+  }, [activePet.personality, energy, boredom, isThinking]);
 
   // 4. Spontaneous idle conversation. The pet talks by itself when the user leaves it alone.
   // If ignored after a spontaneous comment, it reacts with a random annoyed/sleepy follow-up
