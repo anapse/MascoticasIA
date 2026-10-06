@@ -84,6 +84,22 @@ export async function processPetInteraction(
     }
   }
 
+  // 6. Local chat knowledge for common questions. This keeps the app useful on GitHub Pages
+  // even when the optional Gemini backend is not connected.
+  if (!actionType || actionType === 'chat') {
+    const clean = userInput.toLowerCase().trim();
+    const localResponses: Array<{ test: RegExp; message: string; emotion: EmotionType }> = [
+      { test: /^(hola|holi|hey|buenas|buenos dias|buenas tardes|buenas noches)\\b/, message: `¡Hola, ${player.nickname}! 🐾 ¿Qué quieres saber hoy?`, emotion: 'saluda' },
+      { test: /como estas|cómo estás|como te sientes|cómo te sientes/, message: '¡Estoy muy bien! Me encanta estar contigo y conversar. ❤️', emotion: 'feliz' },
+      { test: /quien eres|quién eres|que eres|qué eres/, message: `¡Soy ${pet.name}, tu mascota ${species.displayName}! Estoy aquí para conversar contigo. 🐾`, emotion: 'feliz' },
+      { test: /que puedes hacer|qué puedes hacer|que sabes hacer|qué sabes hacer/, message: 'Puedo contarte chistes, curiosidades, ayudarte con cuentas y aprender contigo.', emotion: 'curioso' },
+      { test: /te gusta|cual es tu favorito|cuál es tu favorito/, message: `Me gustan las cosas divertidas y pasar tiempo contigo. ¡Pregúntame algo más!`, emotion: 'feliz' },
+      { test: /ayuda|como funciona|cómo funciona/, message: 'Escríbeme una pregunta, una cuenta o pulsa Chiste y Curiosidad para empezar.', emotion: 'curioso' },
+    ];
+    const localMatch = localResponses.find((item) => item.test.test(clean));
+    if (localMatch) return { message: localMatch.message, emotion: localMatch.emotion, source: 'local_rule' };
+  }
+
   // 6. Check Pet Tiredness / Low Energy
   if (pet.energy <= 10) {
     return {
@@ -149,7 +165,7 @@ export async function processPetInteraction(
     console.warn('AI API call failed or timed out, falling back locally', err);
 
     return {
-      message: 'No pude encontrar una respuesta esta vez... pero podemos intentarlo más tarde. ¿Quieres un chiste o verme bailar?',
+      message: `Mmm... todavía no puedo consultar esa pregunta 😅. Prueba con una cuenta, un saludo o pregúntame qué puedo hacer.`,
       emotion: 'curioso',
       source: 'local_rule',
     };
