@@ -382,3 +382,75 @@ export const EXTRA_KID_FACTS: string[] = [
   'Algunas ranas pueden respirar parcialmente a través de su piel. 🐸',
   'Las mariposas prueban sustancias usando receptores ubicados en sus patas. 🦋',
 ];
+
+
+// Large local idle-conversation bank. Used without Gemini so the pet can feel alive while the user is away.
+export const EXTRA_SPONTANEOUS_PHRASES: Record<string, string[]> = {
+  molesto: [
+    '¿Sigues ahí? Yo sí... esperando. 😒', 'Estoy pensando en algo... pero no te lo voy a contar todavía. 😏',
+    '¿Sabes qué? Una merienda estaría bastante bien.', 'Aquí estoy. No es que te extrañe ni nada... 😒❤️',
+    '¿Cuánto tiempo piensas dejarme mirando al techo?', 'Tengo ganas de hacer algo divertido.',
+    'Te voy a dar exactamente cinco segundos para decirme hola. 😤', 'Bueno... hoy estás muy callado.',
+    'Creo que merezco un poquito de atención.', '¿Un chiste? ¿Una curiosidad? ¿O vas a seguir ignorándome? 😒',
+    'He decidido que necesito una aventura.', '¿Por qué nadie me pregunta cómo estoy?',
+    'Estoy aburrido... y eso es culpa tuya. 😤', 'Podría bailar, pero primero necesito público.',
+    '¿Me escuchas? Porque tengo cosas importantes que decir.', 'Voy a fingir que no estoy esperando tu respuesta. 😑',
+    '¡Oye! Se me ocurrió algo genial.', '¿Ya regresaste? Bien. No hagamos esperar a la diversión.'
+  ],
+  lenta: [
+    'Estoy aquí tranquilito... podemos hablar cuando quieras. 🐢', 'Qué bonito está todo cuando nadie tiene prisa.',
+    'Creo que necesito una pequeña siesta... o una conversación.', 'Me pregunto qué habrá para aprender hoy.',
+    '¿Sabías que me gusta escuchar historias?', 'Estoy pensando... despacito... pero pensando. 🤔',
+    'Qué silencio tan agradable... aunque una charla estaría mejor.', '¿Quieres contarme cómo fue tu día?',
+    'Voy a quedarme aquí descansando un poquito.', 'Tengo una pregunta: ¿qué animal te gusta más?',
+    'Las mejores aventuras también pueden empezar despacio.', '¿Hacemos algo tranquilo?',
+    'Estoy de buen humor hoy. 😊', 'Me gusta cuando vienes a visitarme.',
+    'Podemos jugar cuando estés listo.', 'Creo que una curiosidad sería perfecta ahora.'
+  ],
+  picaro: [
+    'Pssst... tengo una idea secreta. 😏', '¿Jugamos a descubrir algo?', 'Creo que escuché algo... ¿o fue mi imaginación?',
+    'Tengo mis patitas listas para una aventura.', '¿Qué tal si hacemos una pregunta difícil?',
+    'Estoy investigando una cosa muy misteriosa... 🕵️', 'Tengo una curiosidad guardada para ti.',
+    '¿Quieres un reto rápido?', 'Creo que puedo sorprenderte.', 'Hoy tengo ganas de hacer travesuras... pequeñas, claro. 😜',
+    '¿Qué crees que estoy pensando?', 'Tengo una pregunta para ti, pero primero dime hola.',
+    '¿Vamos a descubrir algo nuevo?', 'Se me ocurrió un juego que podemos hacer aquí mismo.',
+    'Tengo demasiada curiosidad. ¡Cuéntame algo!', '¿Adivinas qué animal me gustaría conocer?'
+  ],
+  tierno: [
+    'Me alegra que estés aquí. ❤️', 'Solo quería decirte que eres un buen amigo.',
+    '¿Quieres que nos quedemos charlando un ratito?', 'Me gusta mucho cuando vienes a verme. 🥰',
+    'Estoy tranquilito esperando tu próxima pregunta.', 'Te guardé una curiosidad muy bonita.',
+    '¿Cómo te sientes hoy?', 'Si estás aburrido, podemos inventar algo juntos.',
+    'Aquí tienes una sonrisita. 😊', 'Me gusta pasar tiempo contigo.',
+    '¿Quieres que te cuente algo divertido?', 'Creo que hoy será un buen día.',
+    'No hace falta correr. Podemos hablar con calma.', 'Tengo ganas de jugar contigo.',
+    '¿Quieres un abrazo virtual? 🤗', 'Gracias por venir a visitarme otra vez.'
+  ],
+  curioso: [
+    'Me pregunto qué habrá más allá de las estrellas... ⭐', 'Tengo una pregunta: ¿cuál es tu animal favorito?',
+    '¿Sabías que siempre hay algo nuevo que aprender?', 'Estoy pensando en una curiosidad interesante.',
+    '¿Qué crees que pesa más: una nube o un elefante?', 'Tengo ganas de descubrir algo nuevo.',
+    '¿Por qué algunas mascotas duermen tanto? 🤔', 'Se me ocurrió una pregunta divertida.',
+    '¿Quieres jugar a las adivinanzas?', 'Hoy quiero aprender algo contigo.',
+    'Tengo una teoría... pero necesito tu opinión.', '¿Qué película te gusta más?',
+    '¿Qué comida nunca te cansarías de comer?', 'Creo que deberíamos investigar algo interesante.',
+    'Mi cabeza está llena de preguntas. 😵‍💫', '¿Quieres que te cuente un dato sorprendente?'
+  ],
+  dormilon: [
+    'Zzz... ah, hola. Creí que estabas dormido. 💤', 'Estoy despierto... más o menos. 😴',
+    'Una siestita sería una excelente idea.', '¿Podemos hablar bajito?', 'Creo que mi almohada me está llamando.',
+    'Tengo sueño, pero también quiero compañía. ❤️', 'Cinco minutitos más... zzz...',
+    '¿Existe una película para ver mientras uno duerme?', 'Estoy intentando mantener los ojos abiertos.',
+    'Creo que soñé con una montaña de comida.', 'Si no contesto, probablemente me quedé dormido. 😴',
+    '¿Me cuentas algo tranquilo?', 'Hoy mi energía está en modo tortuguita.',
+    'Una manta y una charla suenan perfectas.', 'Zzz... ¿dijiste algo?', 'Creo que necesito recargar mis pilitas.'
+  ],
+  default: [
+    '¿Sigues por aquí? 🐾', 'Se me ocurrió algo que quería contarte.', '¿Qué hacemos ahora?',
+    'Tengo ganas de conversar contigo.', '¿Quieres aprender algo nuevo?', 'Creo que podemos divertirnos un rato.',
+    '¿Cómo va tu día?', 'Estoy aquí esperando una aventura.', '¿Chiste, curiosidad o charla?',
+    'Me pregunto qué estás haciendo.', 'Tengo una pregunta para ti.', '¿Jugamos un ratito?',
+    'Hoy tengo ganas de descubrir algo nuevo.', '¿Quieres que te cuente algo?', 'No te vayas muy lejos. 🐾',
+    'Me alegra que sigas aquí.'
+  ]
+};
