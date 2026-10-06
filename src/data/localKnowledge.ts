@@ -214,27 +214,82 @@ export const LOCAL_FACTS: string[] = [
 /**
  * Mini-Games local dialogues.
  */
-export const MINI_GAMES = [
-  {
-    type: 'adivinanza',
-    question: 'Oro parece, plata no es... ¿quién no lo adivine bien tonto es? 🍌',
-    answer: '¡El plátano!',
-    hint: '¡Es una fruta amarilla deliciosa!',
-  },
-  {
-    type: 'adivinanza',
-    question: 'Tengo orejas largas y rabo cortito. Corro y salto muy rapidito. ¿Quién soy? 🐰',
-    answer: '¡El conejo!',
-    hint: '¡Come zanahorias!',
-  },
-  {
-    type: 'adivinanza',
-    question: 'Llevo mi casita al hombro, camino sin una pata y voy dejando mi huella con un hilito de plata. 🐌',
-    answer: '¡El caracol!',
-    hint: '¡Camina despacito!',
-  },
-  {
-    type: 'piedra_papel_tijera',
-    options: ['piedra', 'papel', 'tijera'],
-  },
+/**
+ * Spontaneous idle phrases bank respecting each personality.
+ * 100% local, 0 API calls.
+ */
+export const SPONTANEOUS_PHRASES: Record<string, string[]> = {
+  molesto: [
+    'Bueno... supongo que eres un buen amigo.',
+    '¿Qué tramas hoy? Algo divertido, espero.',
+    'Me gusta cuando vienes a verme... aunque no lo admita mucho.',
+    '¿Quieres un chiste o verme bailar un ratito?',
+    'Estoy aquí contigo, ¿qué hacemos ahora?',
+    '¿Me cuentas algo interesante?',
+    'Creo que hoy podemos divertirnos.',
+  ],
+  lenta: [
+    'Me alegra verte otra vez. Podemos conversar tranquilamente.',
+    'El día es muy tranquilo cuando estás aquí conmigo.',
+    '¿Quieres preguntarme algo? Me gusta pensar despacito.',
+    'Gracias por estar conmigo hoy.',
+    'Eres un gran amigo. ¿Cómo va tu día?',
+    'Me gusta cuando nos sentamos a charlar.',
+  ],
+  picaro: [
+    '¿Volviste? Justo estaba investigando algo interesante.',
+    'Tengo mis patitas curiosas listas para cualquier cosa.',
+    '¿Qué hacemos ahora? ¿Un juego o una adivinanza?',
+    '¡Me alegra verte! Eres genial.',
+    '¿Tienes curiosidad de aprender algo hoy?',
+    '¿Quieres verme bailar? ¡Tengo pasos nuevos!',
+  ],
+  tierno: [
+    'Te quiero mucho, gracias por venir a visitarme.',
+    'Me alegra tanto verte aquí.',
+    'Eres un buen amigo.',
+    '¿Quieres que te cuente algo bonito?',
+    'Estoy muy feliz de estar contigo.',
+    '¿Quieres jugar un ratito o descansar conmigo?',
+  ],
+  default: [
+    'Me alegra mucho verte.',
+    'Eres un buen amigo.',
+    '¿Qué quieres hacer hoy conmigo?',
+    '¿Quieres que te cuente un chiste o una curiosidad?',
+    'Gracias por cuidarme tan bien.',
+  ],
+};
+
+/**
+ * Idle attention & hunger requests for periodic 2-minute checks
+ */
+export const HUNGER_REQUESTS = [
+  '¿Me das algo de comer?',
+  'Creo que mi pancita tiene hambre...',
+  '¿Tendrás algo rico para mí?',
+  'Necesito recargar mis pilitas con comidita.',
+  '¿Me ayudas con un poquito de comida?',
+  'Creo que ya me dio hambre...',
 ];
+
+export const LOW_ENERGY_PHRASES = [
+  'Mis pilitas están bajando...',
+  'Estoy un poquito cansado.',
+  'Creo que necesito comer algo o dormir una siesta.',
+  'Uff... ya casi no me queda energía.',
+];
+
+export const BOREDOM_REQUESTS = [
+  '¿Hacemos algo divertido? Me estoy aburriendo un poquito.',
+  '¿Jugamos a algo o me cuentas algo?',
+  '¡Vamos a bailar o a contar chistes!',
+  '¿Qué hacemos ahora? ¡Quiero moverme!',
+];
+
+export const IGNORED_PHRASES = {
+  first: '¿Hola...? ¿Sigues ahí?',
+  molesto: 'Bueno... parece que me ignoraste.',
+  sleepy: 'Zzz... me dio sueñito esperando.',
+};
+

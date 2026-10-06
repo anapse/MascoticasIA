@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { soundService } from '../services/soundService';
 
 export type QuickActionKey = 'joke' | 'fact' | 'feed' | 'sleep' | 'dance';
 
@@ -23,12 +24,13 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ onAction, disabled =
   }, []);
 
   const handleActionClick = (action: QuickActionKey) => {
+    soundService.playButton();
     setIsDropdownOpen(false);
     onAction(action);
   };
 
   const btnClass =
-    "px-3 py-1.5 rounded-xl font-['Fredoka'] font-medium text-xs bg-white/80 hover:bg-white text-slate-800 border border-amber-900/10 shadow-2xs transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer flex items-center gap-1";
+    "px-3 py-1.5 rounded-xl font-['Fredoka'] font-medium text-xs bg-white/80 hover:bg-white text-slate-800 border border-amber-900/10 shadow-2xs transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer flex items-center justify-center";
 
   return (
     <div className="w-full flex items-center justify-center gap-2 py-0.5 relative z-30">
@@ -36,7 +38,10 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ onAction, disabled =
       <button
         type="button"
         disabled={disabled}
-        onClick={() => onAction('joke')}
+        onClick={() => {
+          soundService.playButton();
+          onAction('joke');
+        }}
         className={btnClass}
       >
         Chiste
@@ -46,19 +51,25 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ onAction, disabled =
       <button
         type="button"
         disabled={disabled}
-        onClick={() => onAction('fact')}
+        onClick={() => {
+          soundService.playButton();
+          onAction('fact');
+        }}
         className={btnClass}
       >
         Curiosidad
       </button>
 
-      {/* 3. Desplegable: Acciones ▾ (Comer, Dormir, Bailar) */}
+      {/* 3. Desplegable: Acciones ▾ (Comer, Bailar, Dormir) */}
       <div className="relative" ref={dropdownRef}>
         <button
           type="button"
           disabled={disabled}
-          onClick={() => setIsDropdownOpen((prev) => !prev)}
-          className={`${btnClass} ${isDropdownOpen ? 'bg-amber-100/90 text-amber-950 font-semibold' : ''}`}
+          onClick={() => {
+            soundService.playButton();
+            setIsDropdownOpen((prev) => !prev);
+          }}
+          className={`${btnClass} ${isDropdownOpen ? 'bg-amber-100/90 text-amber-950 font-semibold' : ''} gap-1`}
         >
           <span>Acciones</span>
           <span className="text-[10px] transition-transform duration-200">
@@ -67,32 +78,29 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ onAction, disabled =
         </button>
 
         {isDropdownOpen && (
-          <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-32 bg-white/95 backdrop-blur-md rounded-2xl p-1.5 border border-amber-900/10 shadow-lg flex flex-col gap-1 animate-scale-up z-50">
+          <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-28 bg-white/95 backdrop-blur-md rounded-2xl p-1.5 border border-amber-900/10 shadow-lg flex flex-col gap-1 animate-scale-up z-50">
             <button
               type="button"
               onClick={() => handleActionClick('feed')}
-              className="w-full px-2.5 py-1.5 rounded-xl text-left font-['Fredoka'] text-xs font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-950 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full px-3 py-1.5 rounded-xl text-left font-['Fredoka'] text-xs font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-950 transition-colors cursor-pointer"
             >
-              <span>🍖</span>
-              <span>Comer</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleActionClick('sleep')}
-              className="w-full px-2.5 py-1.5 rounded-xl text-left font-['Fredoka'] text-xs font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-950 flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span>😴</span>
-              <span>Dormir</span>
+              Comer
             </button>
 
             <button
               type="button"
               onClick={() => handleActionClick('dance')}
-              className="w-full px-2.5 py-1.5 rounded-xl text-left font-['Fredoka'] text-xs font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-950 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full px-3 py-1.5 rounded-xl text-left font-['Fredoka'] text-xs font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-950 transition-colors cursor-pointer"
             >
-              <span>💃</span>
-              <span>Bailar</span>
+              Bailar
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleActionClick('sleep')}
+              className="w-full px-3 py-1.5 rounded-xl text-left font-['Fredoka'] text-xs font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-950 transition-colors cursor-pointer"
+            >
+              Dormir
             </button>
           </div>
         )}

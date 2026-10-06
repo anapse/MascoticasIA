@@ -92,6 +92,7 @@ export interface PetModel {
   hunger: number; // 0 - 100
   happiness: number; // 0 - 100
   energy: number; // 0 - 100
+  boredom?: number; // 0 - 100
   health: number; // 0 - 100
   age: number; // in days
   coins: number;

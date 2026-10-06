@@ -111,11 +111,15 @@ export async function processPetInteraction(
     finalQuery = 'Propónme un juego corto que podamos hacer juntos.';
   }
 
-  // 8. Call Gemini Backend with full context & action type
+  // 8. Call Gemini Backend with full context & action type (with 10-second timeout)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
   try {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         petType: species.displayName,
         petName: pet.name,
@@ -125,6 +129,8 @@ export async function processPetInteraction(
         playerName: player.nickname,
       }),
     });
+
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       throw new Error(`Server returned ${res.status}`);
@@ -139,11 +145,12 @@ export async function processPetInteraction(
       source: 'gemini',
     };
   } catch (err) {
-    console.warn('AI API call failed, falling back locally', err);
+    clearTimeout(timeoutId);
+    console.warn('AI API call failed or timed out, falling back locally', err);
 
     return {
-      message: 'En este momento estoy ocupado, por favor inténtalo más tarde.',
-      emotion: 'pensando',
+      message: 'No pude encontrar una respuesta esta vez... pero podemos intentarlo más tarde. ¿Quieres un chiste o verme bailar?',
+      emotion: 'curioso',
       source: 'local_rule',
     };
   }

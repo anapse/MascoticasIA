@@ -6,6 +6,7 @@ import { AdoptModal } from '../components/AdoptModal';
 import { RenameModal } from '../components/RenameModal';
 import { getPetSpecies } from '../pets/petConfig';
 import { MAX_PETS_PER_PLAYER } from '../services/storage';
+import { soundService } from '../services/soundService';
 
 interface MyPetsScreenProps {
   player: PlayerModel;
@@ -41,7 +42,10 @@ export const MyPetsScreen: React.FC<MyPetsScreenProps> = ({
         </span>
         <button
           type="button"
-          onClick={onLogout}
+          onClick={() => {
+            soundService.playButton();
+            onLogout();
+          }}
           className="px-2.5 py-1 rounded-xl bg-white/70 hover:bg-white text-slate-700 text-xs font-['Fredoka'] font-medium shadow-2xs transition-all cursor-pointer"
         >
           Salir
@@ -70,7 +74,10 @@ export const MyPetsScreen: React.FC<MyPetsScreenProps> = ({
               >
                 {/* Pet Sprite Preview */}
                 <div
-                  onClick={() => onSelectPet(pet.petId)}
+                  onClick={() => {
+                    soundService.playButton();
+                    onSelectPet(pet.petId);
+                  }}
                   title="Jugar con mascota"
                   className="w-16 h-16 rounded-xl bg-white/70 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs cursor-pointer border border-white/80 hover:scale-105 transition-transform"
                 >
@@ -85,7 +92,10 @@ export const MyPetsScreen: React.FC<MyPetsScreenProps> = ({
                     </h3>
                     <button
                       type="button"
-                      onClick={() => setPetToRename(pet)}
+                      onClick={() => {
+                        soundService.playButton();
+                        setPetToRename(pet);
+                      }}
                       title="Cambiar nombre"
                       className="p-1 rounded-lg text-slate-400 hover:text-amber-700 hover:bg-amber-100/60 transition-colors cursor-pointer text-xs"
                     >
@@ -99,14 +109,20 @@ export const MyPetsScreen: React.FC<MyPetsScreenProps> = ({
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      onClick={() => onSelectPet(pet.petId)}
+                      onClick={() => {
+                        soundService.playButton();
+                        onSelectPet(pet.petId);
+                      }}
                       className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-['Fredoka'] text-[11px] font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
                     >
                       Jugar ›
                     </button>
                     <button
                       type="button"
-                      onClick={() => setPetToAdopt(pet)}
+                      onClick={() => {
+                        soundService.playButton();
+                        setPetToAdopt(pet);
+                      }}
                       className="px-2 py-1 rounded-lg bg-white/75 hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-rose-200/80 font-['Fredoka'] text-[10px] font-medium transition-all active:scale-95 cursor-pointer"
                     >
                       Dar en adopción
@@ -123,7 +139,10 @@ export const MyPetsScreen: React.FC<MyPetsScreenProps> = ({
           <div className="pt-2 shrink-0">
             <button
               type="button"
-              onClick={onAddNewPet}
+              onClick={() => {
+                soundService.playButton();
+                onAddNewPet();
+              }}
               className="w-full py-2 px-3 rounded-xl font-['Fredoka'] font-semibold text-xs text-amber-950 bg-white/80 hover:bg-white border border-dashed border-amber-500/60 shadow-2xs transition-all active:scale-95 cursor-pointer text-center"
             >
               + Adoptar otra mascota
@@ -141,6 +160,7 @@ export const MyPetsScreen: React.FC<MyPetsScreenProps> = ({
         isOpen={!!petToAdopt}
         onClose={() => setPetToAdopt(null)}
         onConfirm={(petId) => {
+          soundService.playButton();
           onAdoptPet(petId);
           setPetToAdopt(null);
         }}
@@ -151,6 +171,7 @@ export const MyPetsScreen: React.FC<MyPetsScreenProps> = ({
         isOpen={!!petToRename}
         onClose={() => setPetToRename(null)}
         onConfirm={(petId, newName) => {
+          soundService.playButton();
           onRenamePet(petId, newName);
           setPetToRename(null);
         }}

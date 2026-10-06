@@ -1,5 +1,6 @@
 import React from 'react';
 import { PetBackground } from '../components/PetBackground';
+import { soundService } from '../services/soundService';
 
 interface WelcomeScreenProps {
   onSelectExisting: () => void;
@@ -30,7 +31,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       <div className="w-full max-w-[260px] mx-auto z-10 flex flex-col gap-2.5 pb-6 sm:pb-8 shrink-0">
         <button
           type="button"
-          onClick={onSelectExisting}
+          onClick={() => {
+            soundService.unlockAudio();
+            soundService.playButton();
+            onSelectExisting();
+          }}
           className="w-full py-2.5 px-4 rounded-xl font-['Fredoka'] font-semibold text-xs sm:text-sm text-slate-800 bg-white/90 hover:bg-white border border-amber-900/15 shadow-sm transition-all active:scale-95 cursor-pointer text-center"
         >
           Tengo mascotas
@@ -38,7 +43,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 
         <button
           type="button"
-          onClick={onSelectCreate}
+          onClick={() => {
+            soundService.unlockAudio();
+            soundService.playButton();
+            onSelectCreate();
+          }}
           className="w-full py-2.5 px-4 rounded-xl font-['Fredoka'] font-semibold text-xs sm:text-sm text-white bg-amber-500 hover:bg-amber-600 shadow-sm transition-all active:scale-95 cursor-pointer text-center"
         >
           Crear mascota

@@ -195,7 +195,6 @@ export const App: React.FC = () => {
             onLogout={handleLogout}
             onRefreshPets={handleRefreshPets}
             onGoToMyPets={() => setCurrentView('my-pets')}
-            onAdoptPet={handleAdoptPet}
             onRenamePet={handleRenamePet}
           />
         )}

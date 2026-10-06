@@ -97,11 +97,14 @@ function calculateSheetCrops(img: HTMLImageElement): CropRect[] {
   }
 }
 
+export type PetAnimationType = 'breathe' | 'jump' | 'eat' | 'sleep' | 'laugh' | 'dance' | 'curious' | 'talk';
+
 interface SpriteSheetRendererProps {
   pet?: PetModel;
   speciesKey?: string;
   spriteUrl?: string;
   emotion?: EmotionType;
+  animationType?: PetAnimationType;
   isAnimating?: boolean;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'hero';
   className?: string;
@@ -113,6 +116,7 @@ export const SpriteSheetRenderer: React.FC<SpriteSheetRendererProps> = ({
   speciesKey,
   spriteUrl: customUrl,
   emotion = 'feliz',
+  animationType,
   isAnimating = false,
   size = 'hero',
   className = '',
@@ -125,6 +129,18 @@ export const SpriteSheetRenderer: React.FC<SpriteSheetRendererProps> = ({
   const coord = EMOTIONS_MAP[normalized] || EMOTIONS_MAP.feliz;
   const effectiveSpeciesKey = pet?.type || speciesKey || 'fox';
   const species = getPetSpecies(effectiveSpeciesKey);
+
+  // Compute dynamic CSS animation class
+  const getAnimationClass = () => {
+    if (animationType === 'dance') return 'animate-pet-dance';
+    if (animationType === 'eat' || normalized === 'comiendo') return 'animate-pet-eat';
+    if (animationType === 'sleep' || normalized === 'durmiendo') return 'animate-pet-sleep';
+    if (animationType === 'laugh' || normalized === 'risa') return 'animate-pet-laugh';
+    if (animationType === 'curious' || normalized === 'curioso') return 'animate-pet-curious';
+    if (animationType === 'talk') return 'animate-pet-talk';
+    if (animationType === 'jump' || isAnimating) return 'animate-pet-jump';
+    return 'animate-pet-breathe';
+  };
 
   // Size dimensions
   const sizeMap = {
@@ -226,7 +242,7 @@ export const SpriteSheetRenderer: React.FC<SpriteSheetRendererProps> = ({
       onClick={onClick}
       className={`relative flex items-center justify-center select-none cursor-pointer transition-transform duration-300 ${sizeMap[size]} ${className}`}
     >
-      <div className={`w-full h-full flex items-center justify-center ${isAnimating ? 'animate-pet-jump' : 'animate-pet-breathe'}`}>
+      <div className={`w-full h-full flex items-center justify-center ${getAnimationClass()}`}>
         <canvas
           ref={canvasRef}
           className="w-full h-full object-contain drop-shadow-xl"

@@ -5,6 +5,7 @@ import { getPersonality } from '../pets/personalities';
 import { createPet } from '../services/storage';
 import { SpriteSheetRenderer } from '../components/SpriteSheetRenderer';
 import { PetBackground } from '../components/PetBackground';
+import { soundService } from '../services/soundService';
 
 interface PetSelectionScreenProps {
   player: PlayerModel;
@@ -26,6 +27,7 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
   const currentPersonality = getPersonality(currentSpeciesDef.personality);
 
   const handleSelectSpecies = (speciesKey: PetSpeciesKey) => {
+    soundService.playButton();
     setSelectedSpecies(speciesKey);
     const def = getPetSpecies(speciesKey);
     setCustomName(def.defaultName);

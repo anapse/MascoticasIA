@@ -200,6 +200,7 @@ export async function createPet(
     hunger: 85,
     happiness: 90,
     energy: 95,
+    boredom: 10,
     health: 100,
     age: 1,
     coins: 10,
