@@ -557,20 +557,16 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         </div>
       </div>
 
-      {/* Right Vertical Boredom Bar (Aburrimiento) */}
+      {/* Right Vertical Fun Bar (depletes over time) */}
       <div
         className="absolute right-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 pointer-events-none"
-        title={`Aburrimiento: ${boredom}%`}
+        title={`Diversión: ${100 - boredom}%`}
       >
         <span className="px-1 rounded-full bg-white/90 border border-white text-[11px] font-bold text-indigo-600 shadow-md">🫧</span>
         <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-black/35 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-black/80 shadow-lg ring-1 ring-white/70">
           <div
-            className={`w-full rounded-full transition-all duration-700 ${
-              boredom >= 60
-                ? 'bg-gradient-to-t from-rose-500 via-rose-400 to-amber-400'
-                : 'bg-gradient-to-t from-indigo-500 via-indigo-400 to-violet-300'
-            }`}
-            style={{ height: `${Math.max(boredom, 7)}%` }}
+            className="w-full rounded-full bg-gradient-to-t from-indigo-600 via-indigo-400 to-cyan-300 transition-all duration-700"
+            style={{ height: Math.max(100 - boredom, 5) + "%" }}
           />
         </div>
       </div>
