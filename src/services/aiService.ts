@@ -1,5 +1,5 @@
 import { AiChatResponse, EmotionType, PetModel, PlayerModel } from '../types/pet';
-import { checkChildSafety, evaluateSimpleMath, getQuickTranslation, LOCAL_JOKES, LOCAL_FACTS } from '../data/localKnowledge';
+import { checkChildSafety, evaluateSimpleMath, getQuickTranslation, LOCAL_JOKES, LOCAL_FACTS, EXTRA_KID_JOKES, EXTRA_KID_FACTS } from '../data/localKnowledge';
 import { getPersonality } from '../pets/personalities';
 import { getPetSpecies } from '../pets/petConfig';
 import { DAILY_AI_MESSAGE_LIMIT, getDailyAiMessageCount, incrementDailyAiMessageCount } from './storage';
@@ -33,7 +33,8 @@ export async function processPetInteraction(
 
   // 3. Action: Joke (Prioritize LOCAL_JOKES for instant, guaranteed personality jokes)
   if (actionType === 'joke') {
-    const list = LOCAL_JOKES[pet.personality] || LOCAL_JOKES['molesto'];
+    const personalityJokes = LOCAL_JOKES[pet.personality] || LOCAL_JOKES['molesto'];
+    const list = [...personalityJokes, ...EXTRA_KID_JOKES];
     const selectedJoke = list[Math.floor(Math.random() * list.length)];
     return {
       message: selectedJoke,
@@ -44,7 +45,8 @@ export async function processPetInteraction(
 
   // 4. Action: Fact / Curiosidad (Prioritize LOCAL_FACTS for instant, fascinating curiosities)
   if (actionType === 'fact') {
-    const selectedFact = LOCAL_FACTS[Math.floor(Math.random() * LOCAL_FACTS.length)];
+    const list = [...LOCAL_FACTS, ...EXTRA_KID_FACTS];
+    const selectedFact = list[Math.floor(Math.random() * list.length)];
     return {
       message: selectedFact,
       emotion: 'curioso',
