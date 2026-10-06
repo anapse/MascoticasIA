@@ -454,3 +454,38 @@ export const EXTRA_SPONTANEOUS_PHRASES: Record<string, string[]> = {
     'Me alegra que sigas aquí.'
   ]
 };
+
+
+// Contextual prompts: the pet asks for an available action instead of merely chatting.
+export const PET_ACTION_REQUESTS = {
+  hungry: [
+    'Tengo hambre... 🥺 ¿Me das de comer? Abajo está el botón de Comer. 🍖',
+    'Mi pancita está vacía. 🥺 ¡Presiona Comer abajo y dame algo rico!',
+    'Necesito una meriendita. 🍎 ¿Me ayudas? El botón de Comer está abajo.',
+    'Creo que ya es hora de comer. 😋 ¡Dale al botón Comer de abajo!',
+  ],
+  sleepy: [
+    'Mis pilitas están agotadas. 😴 ¿Me mandas a dormir? Presiona Dormir abajo.',
+    'Tengo muchísimo sueño... 💤 ¿Puedes presionar el botón Dormir?',
+    'Ya no puedo más. 😴 Necesito una siesta. ¡Dale a Dormir abajo!',
+    'Mis ojitos se cierran solos... 🥱 ¿Me ayudas a dormir? El botón está abajo.',
+  ],
+  bored: [
+    'Me estoy aburriendo... 😕 ¡Hagamos algo! Puedes presionar Chiste o Curiosidad abajo.',
+    'Necesito divertirme un poquito. 🥺 ¿Presionas Chiste o Curiosidad?',
+    '¡Tengo ganas de aprender algo! 💡 Dale al botón Curiosidad que está abajo.',
+    '¡Quiero reírme! 😂 Presiona Chiste abajo y te cuento uno.',
+  ],
+  joke: [
+    '¡Te cuento un chiste! 😂 Presiona el botón Chiste que está abajo.',
+    'Tengo un chiste preparado para ti. 😏 ¡Dale al botón Chiste de abajo!',
+    '¿Quieres reírte conmigo? 😂 Presiona Chiste y te cuento uno.',
+    'Se me ocurrió un chiste buenísimo... bueno, eso creo. 😅 ¡Dale a Chiste abajo!',
+  ],
+  fact: [
+    '¡Te cuento algo interesante! 💡 Presiona el botón Curiosidad que está abajo.',
+    'Tengo una curiosidad para ti. 👀 ¡Dale al botón Curiosidad de abajo!',
+    '¿Quieres aprender algo nuevo? 🧠 Presiona Curiosidad abajo.',
+    'Sé algo que quizá no sabías... 🤫 ¡Dale a Curiosidad!',
+  ],
+};
