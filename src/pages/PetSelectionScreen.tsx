@@ -74,7 +74,7 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
         <div className="flex items-center justify-between mb-2.5 pb-1.5 border-b border-amber-900/10 shrink-0">
           <div className="flex items-center gap-1.5">
             <div className="w-7 h-7 rounded-lg bg-amber-100/70 p-0.5 flex items-center justify-center">
-              <img src="/sprites/logo.png" alt="Logo" className="w-full h-full object-contain" />
+              <img src={`${import.meta.env.BASE_URL}sprites/logo.png`} alt="Logo Mascoticas IA" className="w-full h-full object-contain" />
             </div>
             <div>
               <h2 className="font-['Fredoka'] font-bold text-sm sm:text-base text-amber-950 leading-tight">
