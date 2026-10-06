@@ -103,7 +103,6 @@ export interface PetModel {
   lastFed: string;
   lastSlept: string;
   eventDay: number;
-  customSpriteUrl?: string;
 }
 
 export interface PlayerModel {
