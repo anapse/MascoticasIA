@@ -20,7 +20,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       <div className="w-full flex-1 flex flex-col items-center justify-center z-10 min-h-0 pt-4 sm:pt-6">
         <div className="w-full max-w-[270px] sm:max-w-[310px] aspect-[3/2] flex items-center justify-center">
           <img
-            src="/logo.png"
+            src={`${import.meta.env.BASE_URL}sprites/logo.png`}
             alt="Mascoticas IA"
             className="w-full h-full object-contain drop-shadow-xl animate-pet-breathe"
           />
