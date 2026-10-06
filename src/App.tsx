@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { PetModel, PlayerModel } from './types/pet';
-import { getPetsForOwner, saveCurrentSession } from './services/storage';
+import { getPetsForOwner, saveCurrentSession, adoptPet, updatePet } from './services/storage';
 import { initFirebaseIfAvailable } from './services/firebase';
 import { WelcomeScreen } from './pages/WelcomeScreen';
 import { LoginScreen } from './pages/LoginScreen';
 import { RegisterScreen } from './pages/RegisterScreen';
 import { PetSelectionScreen } from './pages/PetSelectionScreen';
 import { PetRoomScreen } from './pages/PetRoomScreen';
+import { MyPetsScreen } from './pages/MyPetsScreen';
 
 export const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<'welcome' | 'login' | 'register' | 'adopt' | 'room'>('welcome');
+  const [currentView, setCurrentView] = useState<'welcome' | 'login' | 'register' | 'adopt' | 'room' | 'my-pets'>('welcome');
   const [player, setPlayer] = useState<PlayerModel | null>(null);
   const [pets, setPets] = useState<PetModel[]>([]);
   const [activePetId, setActivePetId] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export const App: React.FC = () => {
 
       if (userPets.length > 0) {
         setActivePetId(userPets[0].petId);
-        setCurrentView('room');
+        setCurrentView('my-pets');
       } else {
         setCurrentView('adopt');
       }
@@ -59,6 +60,32 @@ export const App: React.FC = () => {
     setPets(updated);
     setActivePetId(newPet.petId);
     setCurrentView('room');
+  };
+
+  // Give in adoption / Delete pet
+  const handleAdoptPet = async (petId: string) => {
+    await adoptPet(petId);
+    const updated = pets.filter((p) => p.petId !== petId);
+    setPets(updated);
+    if (updated.length === 0) {
+      setActivePetId(null);
+      setCurrentView('adopt');
+    } else {
+      if (activePetId === petId) {
+        setActivePetId(updated[0].petId);
+      }
+      setCurrentView('my-pets');
+    }
+  };
+
+  // Rename pet
+  const handleRenamePet = async (petId: string, newName: string) => {
+    const target = pets.find((p) => p.petId === petId);
+    if (!target) return;
+    const updatedPet: PetModel = { ...target, name: newName };
+    const updatedList = pets.map((p) => (p.petId === petId ? updatedPet : p));
+    setPets(updatedList);
+    await updatePet(updatedPet);
   };
 
   // Logout
@@ -97,7 +124,7 @@ export const App: React.FC = () => {
           maxHeight: '100svh',
           aspectRatio: '9 / 16',
         }}
-        className="relative bg-amber-50 shadow-2xl flex flex-col justify-between overflow-hidden sm:rounded-3xl sm:border-4 sm:border-amber-300/40"
+        className="relative bg-amber-50 shadow-2xl flex flex-col justify-between overflow-hidden sm:rounded-3xl sm:border sm:border-amber-900/10"
       >
         {loading && (
           <div className="w-full h-full flex items-center justify-center bg-amber-50">
@@ -139,7 +166,22 @@ export const App: React.FC = () => {
           <PetSelectionScreen
             player={player}
             onPetCreated={handlePetCreated}
-            onCancel={pets.length > 0 ? () => setCurrentView('room') : undefined}
+            onCancel={pets.length > 0 ? () => setCurrentView('my-pets') : undefined}
+          />
+        )}
+
+        {!loading && currentView === 'my-pets' && player && (
+          <MyPetsScreen
+            player={player}
+            pets={pets}
+            onSelectPet={(petId) => {
+              setActivePetId(petId);
+              setCurrentView('room');
+            }}
+            onAddNewPet={() => setCurrentView('adopt')}
+            onLogout={handleLogout}
+            onAdoptPet={handleAdoptPet}
+            onRenamePet={handleRenamePet}
           />
         )}
 
@@ -152,6 +194,9 @@ export const App: React.FC = () => {
             onAddNewPet={() => setCurrentView('adopt')}
             onLogout={handleLogout}
             onRefreshPets={handleRefreshPets}
+            onGoToMyPets={() => setCurrentView('my-pets')}
+            onAdoptPet={handleAdoptPet}
+            onRenamePet={handleRenamePet}
           />
         )}
       </div>

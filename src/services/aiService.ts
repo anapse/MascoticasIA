@@ -16,7 +16,7 @@ export async function processPetInteraction(
   // 1. Action: Feeding (Local resolution, NO Gemini call)
   if (actionType === 'care_feed') {
     return {
-      message: '¡Qué rico! ❤️ Ahora me siento mucho mejor.',
+      message: '¡Qué rico! Ahora me siento mucho mejor.',
       emotion: 'comiendo',
       source: 'local_care',
     };
@@ -25,9 +25,30 @@ export async function processPetInteraction(
   // 2. Action: Sleeping (Local resolution, NO Gemini call)
   if (actionType === 'care_sleep') {
     return {
-      message: 'Zzz... 😴 Necesito descansar.',
+      message: 'Zzz... Necesito descansar un ratito.',
       emotion: 'durmiendo',
       source: 'local_care',
+    };
+  }
+
+  // 3. Action: Joke (Prioritize LOCAL_JOKES for instant, guaranteed personality jokes)
+  if (actionType === 'joke') {
+    const list = LOCAL_JOKES[pet.personality] || LOCAL_JOKES['molesto'];
+    const selectedJoke = list[Math.floor(Math.random() * list.length)];
+    return {
+      message: selectedJoke,
+      emotion: 'risa',
+      source: 'local_joke',
+    };
+  }
+
+  // 4. Action: Fact / Curiosidad (Prioritize LOCAL_FACTS for instant, fascinating curiosities)
+  if (actionType === 'fact') {
+    const selectedFact = LOCAL_FACTS[Math.floor(Math.random() * LOCAL_FACTS.length)];
+    return {
+      message: selectedFact,
+      emotion: 'curioso',
+      source: 'local_fact',
     };
   }
 
@@ -75,14 +96,8 @@ export async function processPetInteraction(
   // 7. Check Daily AI Message Limit
   const dailyCount = getDailyAiMessageCount(player.id);
   if (dailyCount >= DAILY_AI_MESSAGE_LIMIT) {
-    let limitMsg = `¡Ya gastamos todos nuestros ${DAILY_AI_MESSAGE_LIMIT} mensajes con IA de hoy! 😵 Necesito descansar.`;
-    if (pet.personality === 'molesto') {
-      limitMsg = `¡Oye! Ya se acabaron los mensajes de hoy 😒 Deja descansar mis patitas y vuelve mañana.`;
-    } else if (pet.personality === 'lenta') {
-      limitMsg = `Se terminaron los mensajitos por hoy... vamos a reposar con calma 🐢💤`;
-    }
     return {
-      message: limitMsg,
+      message: 'En este momento estoy ocupado, por favor inténtalo más tarde.',
       emotion: 'durmiendo',
       source: 'local_rule',
     };
@@ -90,11 +105,7 @@ export async function processPetInteraction(
 
   // Determine query text for automatic buttons if empty
   let finalQuery = userInput;
-  if (actionType === 'joke' && !finalQuery) {
-    finalQuery = 'Cuéntame un chiste corto y divertido.';
-  } else if (actionType === 'fact' && !finalQuery) {
-    finalQuery = 'Cuéntame una curiosidad corta e interesante.';
-  } else if (actionType === 'learn' && !finalQuery) {
+  if (actionType === 'learn' && !finalQuery) {
     finalQuery = 'Enséñame algo corto y fácil de aprender hoy.';
   } else if (actionType === 'game' && !finalQuery) {
     finalQuery = 'Propónme un juego corto que podamos hacer juntos.';
@@ -130,26 +141,9 @@ export async function processPetInteraction(
   } catch (err) {
     console.warn('AI API call failed, falling back locally', err);
 
-    // Fallback locally with personality
-    if (actionType === 'joke') {
-      const list = LOCAL_JOKES[pet.personality] || LOCAL_JOKES['molesto'];
-      return {
-        message: list[Math.floor(Math.random() * list.length)],
-        emotion: 'risa',
-        source: 'local_joke',
-      };
-    }
-    if (actionType === 'fact') {
-      return {
-        message: LOCAL_FACTS[Math.floor(Math.random() * LOCAL_FACTS.length)],
-        emotion: 'curioso',
-        source: 'local_fact',
-      };
-    }
-
     return {
-      message: personality.sampleResponses.unknown || 'Mmm... no escuché bien, ¿puedes repetirlo? 🐾',
-      emotion: 'curioso',
+      message: 'En este momento estoy ocupado, por favor inténtalo más tarde.',
+      emotion: 'pensando',
       source: 'local_rule',
     };
   }

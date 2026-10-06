@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createPlayer, findPlayerByName } from '../services/storage';
 import { PlayerModel } from '../types/pet';
+import { PetBackground } from '../components/PetBackground';
 
 interface RegisterScreenProps {
   onSuccess: (player: PlayerModel) => void;
@@ -67,98 +68,71 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col items-center justify-center p-4 sm:p-6 overflow-hidden font-['Nunito']">
-      {/* Background with fondo.png */}
-      <div className="absolute inset-0 pointer-events-none -z-10">
-        <img
-          src="/fondo.png"
-          alt="Fondo"
-          className="w-full h-full object-cover brightness-[0.97]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-100/60 via-white/50 to-amber-100/70 backdrop-blur-[2px]" />
-      </div>
+    <div className="relative w-full h-full flex flex-col items-center justify-center p-3 select-none overflow-hidden font-['Nunito']">
+      {/* Real Background Wallpaper with no white overlay */}
+      <PetBackground />
 
-      <div className="w-full max-w-sm bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-7 shadow-2xl border-4 border-amber-300 animate-scale-up my-auto">
+      <div className="w-full max-w-xs bg-gradient-to-b from-white/75 to-white/45 backdrop-blur-md rounded-3xl p-5 border border-white/60 shadow-lg z-10 my-auto">
         {/* Back button */}
         <button
           type="button"
           onClick={onBack}
-          className="text-xs font-['Fredoka'] font-bold text-amber-800 hover:text-amber-900 mb-2 inline-flex items-center gap-1 cursor-pointer"
+          className="text-xs font-['Fredoka'] font-medium text-slate-700 hover:text-slate-900 mb-3 inline-flex items-center gap-1 cursor-pointer"
         >
           ← Volver
         </button>
 
-        {/* Header with Logo */}
-        <div className="text-center mb-5">
-          <div className="w-16 h-16 mx-auto mb-1">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow" />
+        {/* Top Logo */}
+        <div className="text-center mb-3">
+          <div className="w-20 h-20 mx-auto">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-sm animate-pet-breathe" />
           </div>
-          <h2 className="font-['Fredoka'] font-bold text-2xl text-amber-950">
-            CREAR MASCOTA
-          </h2>
-          <p className="text-xs text-slate-500 font-['Nunito']">
-            Elige tu apodo y una palabra secreta para tu mascotica
-          </p>
         </div>
 
         {errorMessage && (
-          <div className="mb-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 text-center">
+          <div className="mb-3 p-2 rounded-xl bg-rose-50/90 border border-rose-200 text-xs font-semibold text-rose-700 text-center">
             {errorMessage}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
-            <label className="block text-xs font-['Fredoka'] font-bold text-slate-700 mb-1 uppercase tracking-wider">
+            <label className="block text-[11px] font-['Fredoka'] font-medium text-slate-700 mb-1">
               Nombre / apodo
             </label>
             <input
               type="text"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              placeholder="Ej: Sofía, Mateo, Lucas..."
+              placeholder="Elige tu nombre o apodo..."
               autoCapitalize="words"
               required
-              className="w-full px-3.5 py-2.5 rounded-2xl border-2 border-amber-200 focus:border-amber-400 focus:outline-none text-sm font-['Nunito'] font-bold text-slate-800 placeholder-slate-400 bg-amber-50/40"
+              className="w-full px-3 py-2 rounded-xl border border-white/70 focus:outline-none focus:ring-1 focus:ring-amber-500 text-xs text-slate-800 placeholder-slate-400 bg-white/75 focus:bg-white transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-['Fredoka'] font-bold text-slate-700 mb-1 uppercase tracking-wider">
+            <label className="block text-[11px] font-['Fredoka'] font-medium text-slate-700 mb-1">
               Palabra secreta
             </label>
             <input
               type="password"
               value={secretWord}
               onChange={(e) => setSecretWord(e.target.value)}
-              placeholder="Palabra secreta (guárdala bien)"
+              placeholder="Tu palabra secreta..."
               required
-              className="w-full px-3.5 py-2.5 rounded-2xl border-2 border-amber-200 focus:border-amber-400 focus:outline-none text-sm font-['Nunito'] font-bold text-slate-800 placeholder-slate-400 bg-amber-50/40"
+              className="w-full px-3 py-2 rounded-xl border border-white/70 focus:outline-none focus:ring-1 focus:ring-amber-500 text-xs text-slate-800 placeholder-slate-400 bg-white/75 focus:bg-white transition-colors"
             />
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">
-              🔒 Tu palabra secreta nunca se guarda en texto plano.
-            </p>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-1 py-3.5 px-5 rounded-2xl font-['Fredoka'] font-bold text-base text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-lg shadow-orange-300/60 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+            className="w-full mt-2 py-2.5 px-4 rounded-xl font-['Fredoka'] font-semibold text-xs sm:text-sm text-white bg-amber-500 hover:bg-amber-600 shadow-2xs transition-all active:scale-95 disabled:opacity-40 cursor-pointer text-center"
           >
-            {loading ? 'Comprobando...' : 'CONTINUAR'}
+            {loading ? 'Comprobando...' : 'Continuar'}
           </button>
         </form>
-
-        <div className="text-center mt-4 pt-3 border-t border-amber-100">
-          <p className="text-xs text-slate-500 font-medium">¿Ya tienes una mascotica guardada?</p>
-          <button
-            type="button"
-            onClick={onGoToLogin}
-            className="mt-0.5 text-xs font-['Fredoka'] font-bold text-orange-600 hover:text-orange-700 cursor-pointer underline underline-offset-2"
-          >
-            Entrar con mi apodo 🏠
-          </button>
-        </div>
       </div>
 
       {/* Modal: Duplicate Name (Requirement 5) */}

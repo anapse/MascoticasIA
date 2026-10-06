@@ -13,6 +13,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '1mb' }));
+app.use((_req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
 
 // Allowed 9 emotions
 const ALLOWED_EMOTIONS = [
@@ -49,7 +54,35 @@ const SAFE_FALLBACKS: Record<string, { message: string; emotion: string }[]> = {
   ],
 };
 
-function getRandomFallback(personality: string) {
+const SAFE_JOKES = [
+  '¿Qué le dice un pez a otro pez? ¡Nada!',
+  '¿Por qué los pájaros no usan WhatsApp? Porque ya tienen Twitter.',
+  '¿Qué hace una abeja en el gimnasio? ¡Zum-ba!',
+  '¿Cuál es el colmo de un oso panda? Que le saquen una foto a color y salga en blanco y negro.',
+  '¿Qué le dice un árbol a otro? ¡Qué hojas tan verdes tienes!',
+];
+
+const SAFE_FACTS = [
+  '¿Sabías que las nutrias se agarran de las patitas cuando duermen para no separarse flotando en el agua?',
+  '¿Sabías que los caracoles pueden dormir hasta tres años seguidos?',
+  '¿Sabías que las mariposas saborean la comida con sus patitas?',
+  '¿Sabías que el corazón de un camarón está ubicado en su cabeza?',
+  '¿Sabías que los flamencos son rosados por los pequeños camarones que comen?',
+];
+
+function getRandomFallback(personality: string, actionType?: string) {
+  if (actionType === 'joke') {
+    return {
+      message: SAFE_JOKES[Math.floor(Math.random() * SAFE_JOKES.length)],
+      emotion: 'risa',
+    };
+  }
+  if (actionType === 'fact') {
+    return {
+      message: SAFE_FACTS[Math.floor(Math.random() * SAFE_FACTS.length)],
+      emotion: 'curioso',
+    };
+  }
   const list = SAFE_FALLBACKS[personality] || SAFE_FALLBACKS.default;
   return list[Math.floor(Math.random() * list.length)];
 }
@@ -100,7 +133,7 @@ app.post('/api/chat', async (req: Request, res: Response) => {
 
     // If Gemini is not configured or offline, respond with personality-aware safe response
     if (!ai) {
-      const fallback = getRandomFallback(personality);
+      const fallback = getRandomFallback(personality, actionType);
       return res.json({
         message: fallback.message,
         emotion: fallback.emotion,
@@ -137,7 +170,7 @@ REGLAS OBLIGATORIAS:
 5. NO INVENTES información. Si no conoces la respuesta, dilo claramente.
 6. NUNCA solicites información personal (nombre real completo, teléfono, dirección, contraseñas, escuela, ubicación).
 7. NUNCA proporciones contenido adulto, violento, peligroso, sexual, vulgar o inapropiado para niños.
-8. Utiliza emojis ocasionalmente.
+8. Utiliza emojis con moderación (máximo uno o ninguno). No satures de emojis.
 9. La emoción ("emotion") DEBE ser estrictamente una de las siguientes 9:
     - feliz
     - molesto
@@ -206,7 +239,8 @@ Devuelve SIEMPRE el formato JSON estructurado solicitado.`;
   } catch (error) {
     console.error('Gemini API Error:', error);
     const personality = req.body?.personality || 'molesto';
-    const fallback = getRandomFallback(personality);
+    const actionType = req.body?.actionType || 'chat';
+    const fallback = getRandomFallback(personality, actionType);
     return res.json({
       message: fallback.message,
       emotion: fallback.emotion,

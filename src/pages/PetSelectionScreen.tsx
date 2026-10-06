@@ -4,6 +4,7 @@ import { INITIAL_AVAILABLE_SPECIES, PET_CATALOG, getPetSpecies } from '../pets/p
 import { getPersonality } from '../pets/personalities';
 import { createPet } from '../services/storage';
 import { SpriteSheetRenderer } from '../components/SpriteSheetRenderer';
+import { PetBackground } from '../components/PetBackground';
 
 interface PetSelectionScreenProps {
   player: PlayerModel;
@@ -34,7 +35,7 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
     e.preventDefault();
     const finalName = customName.trim();
     if (!finalName) {
-      setError('Por favor ponle un lindo nombre a tu mascotica');
+      setError('Por favor ponle un nombre a tu mascotica');
       return;
     }
 
@@ -62,30 +63,23 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col items-center justify-between p-3.5 sm:p-5 overflow-hidden font-['Nunito']">
-      {/* Background with fondo.png */}
-      <div className="absolute inset-0 pointer-events-none -z-10">
-        <img
-          src="/fondo.png"
-          alt="Fondo"
-          className="w-full h-full object-cover brightness-[0.96]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-100/70 via-white/50 to-amber-100/75 backdrop-blur-[2px]" />
-      </div>
+    <div className="relative w-full h-full flex flex-col items-center justify-center p-3 select-none overflow-hidden font-['Nunito']">
+      {/* Real Background Wallpaper with no white overlay */}
+      <PetBackground />
 
-      <div className="w-full max-w-sm bg-white/95 backdrop-blur-md rounded-3xl p-4 sm:p-5 shadow-2xl border-4 border-amber-300 animate-scale-up my-auto flex flex-col justify-between max-h-[95%] overflow-y-auto no-scrollbar">
+      <div className="w-full max-w-xs bg-white/90 backdrop-blur-xs rounded-2xl p-3.5 border border-amber-900/10 shadow-sm z-10 my-auto flex flex-col justify-between max-h-[95%] overflow-y-auto no-scrollbar">
         {/* Header */}
-        <div className="flex items-center justify-between mb-3 pb-2 border-b border-amber-100 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-amber-100 p-1 flex items-center justify-center">
+        <div className="flex items-center justify-between mb-2.5 pb-1.5 border-b border-amber-900/10 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <div className="w-7 h-7 rounded-lg bg-amber-100/70 p-0.5 flex items-center justify-center">
               <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h2 className="font-['Fredoka'] font-bold text-lg text-amber-950 leading-tight">
-                ELIGE TU MASCOTICA
+              <h2 className="font-['Fredoka'] font-bold text-sm sm:text-base text-amber-950 leading-tight">
+                Elige tu mascotica
               </h2>
-              <p className="text-[10px] text-slate-500 font-semibold">
-                ¡Hola <strong className="text-amber-800">{player.nickname}</strong>! Elige tu amiguito
+              <p className="text-[10px] text-slate-500 font-medium leading-none">
+                Hola {player.nickname}
               </p>
             </div>
           </div>
@@ -93,7 +87,7 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="text-[11px] font-['Fredoka'] font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg cursor-pointer"
+              className="text-[11px] font-['Fredoka'] font-medium text-slate-500 bg-white/80 hover:bg-white px-2 py-0.5 rounded-lg border border-amber-900/10 cursor-pointer"
             >
               Volver
             </button>
@@ -101,17 +95,17 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
         </div>
 
         {error && (
-          <div className="mb-2 p-2 rounded-xl bg-rose-50 border border-rose-200 text-xs font-bold text-rose-700 text-center">
+          <div className="mb-2 p-1.5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 text-center">
             {error}
           </div>
         )}
 
-        {/* Species Carousel / Grid */}
-        <div className="mb-3 shrink-0">
-          <p className="text-[11px] font-['Fredoka'] font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
-            1. Selecciona tu especie favorita:
+        {/* Species Grid */}
+        <div className="mb-2.5 shrink-0">
+          <p className="text-[10px] font-['Fredoka'] font-medium text-slate-600 mb-1">
+            1. Selecciona especie:
           </p>
-          <div className="grid grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1 no-scrollbar border rounded-2xl border-amber-100 bg-amber-50/30">
+          <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-amber-50/50 border border-amber-900/10">
             {INITIAL_AVAILABLE_SPECIES.map((speciesKey) => {
               const def = PET_CATALOG[speciesKey];
               const isSelected = selectedSpecies === speciesKey;
@@ -120,14 +114,14 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
                   key={speciesKey}
                   type="button"
                   onClick={() => handleSelectSpecies(speciesKey)}
-                  className={`flex flex-col items-center justify-center p-1.5 rounded-xl transition-all duration-200 cursor-pointer ${
+                  className={`flex flex-col items-center justify-center p-1 rounded-xl transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-amber-400 text-amber-950 ring-2 ring-amber-300 shadow transform scale-105'
-                      : 'bg-white/80 hover:bg-amber-100/60 text-slate-700 border border-amber-200/50'
+                      ? 'bg-amber-400 text-amber-950 shadow-2xs font-bold'
+                      : 'bg-white/80 hover:bg-white text-slate-700'
                   }`}
                 >
                   <SpriteSheetRenderer speciesKey={speciesKey} emotion="feliz" size="xs" />
-                  <span className="font-['Fredoka'] font-bold text-[10px] leading-tight mt-1">
+                  <span className="font-['Fredoka'] text-[10px] leading-tight mt-0.5">
                     {def.displayName}
                   </span>
                 </button>
@@ -137,58 +131,49 @@ export const PetSelectionScreen: React.FC<PetSelectionScreenProps> = ({
         </div>
 
         {/* Selected Pet Highlight Preview */}
-        <div className="mb-3 p-3 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50/70 border-2 border-amber-200 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-16 h-16 rounded-2xl bg-amber-100/80 flex items-center justify-center shadow-inner shrink-0 overflow-hidden">
+        <div className="mb-2.5 p-2 rounded-xl bg-amber-50/60 border border-amber-900/10 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-16 h-16 rounded-xl bg-white/80 flex items-center justify-center shadow-2xs shrink-0 overflow-hidden border border-white/80">
               <SpriteSheetRenderer speciesKey={selectedSpecies} emotion="feliz" size="sm" isAnimating />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <h3 className="font-['Fredoka'] font-bold text-base text-slate-800">
-                  {currentSpeciesDef.displayName}
-                </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
-                  {currentPersonality.badge}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-600 font-['Nunito'] line-clamp-2 leading-tight">
+              <h3 className="font-['Fredoka'] font-bold text-sm text-slate-800">
+                {currentSpeciesDef.displayName}
+              </h3>
+              <p className="text-[10px] text-slate-600 font-medium line-clamp-2 leading-tight">
                 {currentSpeciesDef.description}
               </p>
             </div>
           </div>
-
-          <div className="mt-2 pt-1.5 border-t border-amber-200/60 flex items-start gap-1.5 text-[11px] font-semibold text-amber-900/90 italic leading-snug">
-            <span>💬</span>
-            <span>"{currentPersonality.sampleResponses.greeting}"</span>
-          </div>
         </div>
 
         {/* Custom Pet Name Input */}
-        <form onSubmit={handleAdopt} className="flex flex-col gap-2.5 shrink-0">
+        <form onSubmit={handleAdopt} className="flex flex-col gap-2 shrink-0">
           <div>
-            <label className="block text-[11px] font-['Fredoka'] font-bold text-slate-700 mb-1 uppercase tracking-wider">
-              2. Nombre para tu {currentSpeciesDef.displayName}:
+            <label className="block text-[10px] font-['Fredoka'] font-medium text-slate-600 mb-0.5">
+              2. Nombre para tu mascota:
             </label>
             <input
               type="text"
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
-              placeholder={`Ej: ${currentSpeciesDef.defaultName}, Luna, Toby...`}
+              placeholder={`Ej: ${currentSpeciesDef.defaultName}`}
               maxLength={20}
               required
-              className="w-full px-3 py-2 rounded-xl border-2 border-amber-200 focus:border-amber-400 focus:outline-none text-sm font-['Nunito'] font-bold text-slate-800 placeholder-slate-400 bg-amber-50/40"
+              className="w-full px-2.5 py-1.5 rounded-xl border border-amber-900/15 focus:outline-none focus:ring-1 focus:ring-amber-500 text-xs text-slate-800 bg-white/80"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 rounded-2xl font-['Fredoka'] font-bold text-base text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-md shadow-orange-300/60 transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+            className="w-full py-2 px-3 rounded-xl font-['Fredoka'] font-semibold text-xs sm:text-sm text-white bg-amber-500 hover:bg-amber-600 shadow-2xs transition-all active:scale-95 disabled:opacity-40 cursor-pointer text-center"
           >
-            <span>{loading ? 'Adoptando...' : `¡ADOPTAR A ${customName.toUpperCase()}! 🎉`}</span>
+            {loading ? 'Adoptando...' : `Adoptar a ${customName}`}
           </button>
         </form>
       </div>
     </div>
   );
 };
+

@@ -90,7 +90,26 @@ export const INITIAL_AVAILABLE_SPECIES: PetSpeciesKey[] = [
   'red_panda',
 ];
 
-export function getPetSpecies(type: string): PetSpeciesDefinition {
-  const key = type as PetSpeciesKey;
-  return PET_CATALOG[key] || PET_CATALOG.fox;
+const SPECIES_ALIASES: Record<string, PetSpeciesKey> = {
+  fox: 'fox',
+  zorro: 'fox',
+  rocky: 'fox',
+  turtle: 'turtle',
+  tortuga: 'turtle',
+  donatello: 'turtle',
+  raccoon: 'raccoon',
+  mapache: 'raccoon',
+  mapachito: 'raccoon',
+  bandit: 'raccoon',
+  red_panda: 'red_panda',
+  panda_rojo: 'red_panda',
+  pandarojo: 'red_panda',
+  rory: 'red_panda',
+};
+
+export function getPetSpecies(type: string | undefined | null): PetSpeciesDefinition {
+  if (!type) return PET_CATALOG.fox;
+  const normalizedKey = type.toLowerCase().trim();
+  const canonicalKey = SPECIES_ALIASES[normalizedKey] || (normalizedKey as PetSpeciesKey);
+  return PET_CATALOG[canonicalKey] || PET_CATALOG.fox;
 }

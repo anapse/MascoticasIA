@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-export type QuickActionKey = 'joke' | 'fact' | 'ask' | 'learn' | 'game' | 'feed' | 'sleep';
+export type QuickActionKey = 'joke' | 'fact' | 'feed' | 'sleep' | 'dance';
 
 interface QuickActionsProps {
   onAction: (action: QuickActionKey) => void;
@@ -8,31 +8,94 @@ interface QuickActionsProps {
 }
 
 export const QuickActions: React.FC<QuickActionsProps> = ({ onAction, disabled = false }) => {
-  const actions = [
-    { key: 'joke' as const, label: 'Chiste', emoji: '😂', bg: 'bg-amber-100/90 text-amber-900 hover:bg-amber-200 border-amber-300' },
-    { key: 'fact' as const, label: 'Curiosidad', emoji: '💡', bg: 'bg-sky-100/90 text-sky-900 hover:bg-sky-200 border-sky-300' },
-    { key: 'ask' as const, label: 'Preguntar', emoji: '🧠', bg: 'bg-purple-100/90 text-purple-900 hover:bg-purple-200 border-purple-300' },
-    { key: 'learn' as const, label: 'Aprende', emoji: '📚', bg: 'bg-emerald-100/90 text-emerald-900 hover:bg-emerald-200 border-emerald-300' },
-    { key: 'game' as const, label: 'Jugar', emoji: '🎮', bg: 'bg-indigo-100/90 text-indigo-900 hover:bg-indigo-200 border-indigo-300' },
-    { key: 'feed' as const, label: 'Dar comida', emoji: '🍖', bg: 'bg-rose-100/90 text-rose-900 hover:bg-rose-200 border-rose-300' },
-    { key: 'sleep' as const, label: 'Dormir', emoji: '😴', bg: 'bg-blue-100/90 text-blue-900 hover:bg-blue-200 border-blue-300' },
-  ];
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleActionClick = (action: QuickActionKey) => {
+    setIsDropdownOpen(false);
+    onAction(action);
+  };
+
+  const btnClass =
+    "px-3 py-1.5 rounded-xl font-['Fredoka'] font-medium text-xs bg-white/80 hover:bg-white text-slate-800 border border-amber-900/10 shadow-2xs transition-all active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer flex items-center gap-1";
 
   return (
-    <div className="w-full overflow-x-auto no-scrollbar py-1">
-      <div className="flex items-center gap-2 min-w-max px-1">
-        {actions.map((act) => (
-          <button
-            key={act.key}
-            type="button"
-            disabled={disabled}
-            onClick={() => onAction(act.key)}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl font-['Fredoka'] font-semibold text-sm border shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer ${act.bg}`}
-          >
-            <span className="text-base leading-none">{act.emoji}</span>
-            <span>{act.label}</span>
-          </button>
-        ))}
+    <div className="w-full flex items-center justify-center gap-2 py-0.5 relative z-30">
+      {/* 1. Chiste */}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onAction('joke')}
+        className={btnClass}
+      >
+        Chiste
+      </button>
+
+      {/* 2. Curiosidad */}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => onAction('fact')}
+        className={btnClass}
+      >
+        Curiosidad
+      </button>
+
+      {/* 3. Desplegable: Acciones ▾ (Comer, Dormir, Bailar) */}
+      <div className="relative" ref={dropdownRef}>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setIsDropdownOpen((prev) => !prev)}
+          className={`${btnClass} ${isDropdownOpen ? 'bg-amber-100/90 text-amber-950 font-semibold' : ''}`}
+        >
+          <span>Acciones</span>
+          <span className="text-[10px] transition-transform duration-200">
+            {isDropdownOpen ? '▴' : '▾'}
+          </span>
+        </button>
+
+        {isDropdownOpen && (
+          <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-32 bg-white/95 backdrop-blur-md rounded-2xl p-1.5 border border-amber-900/10 shadow-lg flex flex-col gap-1 animate-scale-up z-50">
+            <button
+              type="button"
+              onClick={() => handleActionClick('feed')}
+              className="w-full px-2.5 py-1.5 rounded-xl text-left font-['Fredoka'] text-xs font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-950 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <span>🍖</span>
+              <span>Comer</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleActionClick('sleep')}
+              className="w-full px-2.5 py-1.5 rounded-xl text-left font-['Fredoka'] text-xs font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-950 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <span>😴</span>
+              <span>Dormir</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleActionClick('dance')}
+              className="w-full px-2.5 py-1.5 rounded-xl text-left font-['Fredoka'] text-xs font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-950 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <span>💃</span>
+              <span>Bailar</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
