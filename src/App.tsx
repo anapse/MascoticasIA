@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PetModel, PlayerModel } from './types/pet';
-import { getPetsForOwner, saveCurrentSession, adoptPet, updatePet } from './services/storage';
+import { getPetsForOwner, saveCurrentSession, adoptPet, updatePet, recordVisit } from './services/storage';
 import { initFirebaseIfAvailable } from './services/firebase';
 import { WelcomeScreen } from './pages/WelcomeScreen';
 import { LoginScreen } from './pages/LoginScreen';
@@ -60,6 +60,9 @@ export const App: React.FC = () => {
     setPets(updated);
     setActivePetId(newPet.petId);
     setCurrentView('room');
+    if (player) {
+      void recordVisit(player.id, newPet.petId);
+    }
   };
 
   // Give in adoption / Delete pet
@@ -177,6 +180,7 @@ export const App: React.FC = () => {
             onSelectPet={(petId) => {
               setActivePetId(petId);
               setCurrentView('room');
+              void recordVisit(player.id, petId);
             }}
             onAddNewPet={() => setCurrentView('adopt')}
             onLogout={handleLogout}
