@@ -115,16 +115,17 @@ export const App: React.FC = () => {
   const activePet = pets.find((p) => p.petId === activePetId) || pets[0];
 
   return (
-    <div className="w-screen h-[100vh] h-[100svh] overflow-hidden bg-slate-950 flex items-center justify-center relative select-none">
+    <div className="w-screen h-[100dvh] min-h-[100dvh] overflow-hidden bg-slate-950 flex items-center justify-center relative select-none">
       {/* Ambient background glow on desktop */}
       <div className="fixed inset-0 pointer-events-none opacity-25 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-500/30 via-orange-950/20 to-slate-950" />
 
       {/* Strict 9:16 Aspect Ratio Viewport Container (ancho = altura * 9 / 16) */}
       <div
         style={{
-          height: '100svh',
-          width: 'min(calc(100svh * 9 / 16), 100vw)',
-          maxHeight: '100svh',
+          height: '100dvh',
+          width: 'min(calc(100dvh * 9 / 16), 100vw)',
+          maxHeight: '100dvh',
+          minHeight: '100dvh',
           aspectRatio: '9 / 16',
         }}
         className="relative bg-amber-50 shadow-2xl flex flex-col justify-between overflow-hidden sm:rounded-3xl sm:border sm:border-amber-900/10"
