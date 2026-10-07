@@ -62,7 +62,8 @@ service cloud.firestore {
       allow delete: if signedIn()
         && resource.data.ownerId == authPlayerId();
 
-      allow list: if false;
+      allow list: if signedIn()
+        && resource.data.ownerId == authPlayerId();
     }
 
     match /visits/{visitId} {
