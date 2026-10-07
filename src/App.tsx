@@ -121,14 +121,7 @@ export const App: React.FC = () => {
 
       {/* Strict 9:16 Aspect Ratio Viewport Container (ancho = altura * 9 / 16) */}
       <div
-        style={{
-          height: '100dvh',
-          width: 'min(calc(100dvh * 9 / 16), 100vw)',
-          maxHeight: '100dvh',
-          minHeight: '100dvh',
-          aspectRatio: '9 / 16',
-        }}
-        className="relative bg-amber-50 shadow-2xl flex flex-col justify-between overflow-hidden sm:rounded-3xl sm:border sm:border-amber-900/10"
+        className="relative w-screen h-[100dvh] bg-amber-50 shadow-2xl flex flex-col justify-between overflow-hidden sm:w-[min(calc(100dvh*9/16),100vw)] sm:h-[100dvh] sm:max-h-[100dvh] sm:aspect-[9/16] sm:rounded-3xl sm:border sm:border-amber-900/10"
       >
         {loading && (
           <div className="w-full h-full flex items-center justify-center bg-amber-50">
