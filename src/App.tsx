@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PetModel, PlayerModel } from './types/pet';
-import { getPetsForOwner, saveCurrentSession, adoptPet, updatePet, recordVisit, logoutFirebase } from './services/storage';
+import { getPetsForOwner, adoptPet, updatePet, recordVisit, logoutFirebase } from './services/storage';
 import { initFirebaseIfAvailable } from './services/firebase';
 import { WelcomeScreen } from './pages/WelcomeScreen';
 import { LoginScreen } from './pages/LoginScreen';
