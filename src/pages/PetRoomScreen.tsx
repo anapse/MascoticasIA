@@ -564,6 +564,8 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           text: response.message,
           emotion: response.emotion,
           timestamp: Date.now(),
+          question: text,
+          retryable: response.retryable,
         },
       ]);
 
@@ -584,9 +586,11 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         {
           id: `err_${Date.now()}`,
           role: 'pet',
-          text: 'No pude encontrar una respuesta esta vez... inténtalo más tarde. ¿Quieres un chiste o verme bailar?',
+          text: '⚠️ No pude responder esta vez.',
           emotion: 'curioso',
           timestamp: Date.now(),
+          question: text,
+          retryable: true,
         },
       ]);
     }
