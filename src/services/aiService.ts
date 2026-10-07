@@ -8,10 +8,12 @@ export async function processPetInteraction(
   pet: PetModel,
   player: PlayerModel,
   userInput: string,
-  actionType?: 'joke' | 'fact' | 'care_feed' | 'care_sleep' | 'game' | 'learn' | 'chat'
+  actionType?: 'joke' | 'fact' | 'care_feed' | 'care_sleep' | 'game' | 'learn' | 'chat',
+  context: Array<{ role: 'user' | 'model'; content: string }> = [],
 ): Promise<AiChatResponse> {
   const species = getPetSpecies(pet.type);
   const personality = getPersonality(pet.personality);
+  const safeNickname = player.nickname.includes('@') ? 'amigo' : player.nickname.trim() || 'amigo';
 
   // 1. Action: Feeding (Local resolution, NO Gemini call)
   if (actionType === 'care_feed') {
@@ -91,7 +93,7 @@ export async function processPetInteraction(
   if (!actionType || actionType === 'chat') {
     const clean = userInput.toLowerCase().trim();
     const localResponses: Array<{ test: RegExp; message: string; emotion: EmotionType }> = [
-      { test: /^(hola|holi|hey|buenas|buenos dias|buenas tardes|buenas noches)\\b/, message: `¡Hola, ${player.nickname}! 🐾 ¿Qué quieres saber hoy?`, emotion: 'saluda' },
+      { test: /^(hola|holi|hey|buenas|buenos dias|buenas tardes|buenas noches)\\b/, message: `¡Hola, ${safeNickname}! 🐾 ¿Qué quieres saber hoy?`, emotion: 'saluda' },
       { test: /como estas|cómo estás|como te sientes|cómo te sientes/, message: '¡Estoy muy bien! Me encanta estar contigo y conversar. ❤️', emotion: 'feliz' },
       { test: /quien eres|quién eres|que eres|qué eres/, message: `¡Soy ${pet.name}, tu mascota ${species.displayName}! Estoy aquí para conversar contigo. 🐾`, emotion: 'feliz' },
       { test: /que puedes hacer|qué puedes hacer|que sabes hacer|qué sabes hacer/, message: 'Puedo contarte chistes, curiosidades, ayudarte con cuentas y aprender contigo.', emotion: 'curioso' },
@@ -135,9 +137,6 @@ export async function processPetInteraction(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-  // Never expose an email address in the pet's dialogue.
-  const safeNickname = player.nickname.includes('@') ? 'amigo' : player.nickname.trim() || 'amigo';
-
   const systemInstruction = [
     'Eres una mascota virtual infantil, amable y segura.',
     `Tu nombre es ${pet.name} y eres ${species.displayName}.`,
@@ -158,6 +157,10 @@ export async function processPetInteraction(
       signal: controller.signal,
       body: JSON.stringify({
         prompt: finalQuery,
+        messages: [
+          ...context.slice(-6).map((item) => ({ role: item.role, content: item.content })),
+          { role: 'user', content: finalQuery },
+        ],
         systemInstruction,
         taskType: 'auto',
         maxTokens: 80,
@@ -201,6 +204,7 @@ export async function processPetInteraction(
       message: `Mmm... todavía no puedo consultar esa pregunta 😅. Prueba con una cuenta, un saludo o pregúntame qué puedo hacer.`,
       emotion: 'curioso',
       source: 'local_rule',
+      retryable: true,
     };
   }
 }
