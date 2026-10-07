@@ -40,6 +40,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       return;
     }
 
+    if (cleanSecret.length < 6) {
+      setErrorMessage('La palabra secreta debe tener al menos 6 caracteres');
+      return;
+    }
+
     setLoading(true);
     setErrorMessage('');
 
