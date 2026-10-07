@@ -54,6 +54,11 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
   // In-session messages
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState<string>('');
+  const [emotionNotice, setEmotionNotice] = useState<string | null>(null);
+  const [emotionNoticeVisible, setEmotionNoticeVisible] = useState(false);
+  const [ignoredShake, setIgnoredShake] = useState(false);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const emotionNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // References
   const inputRef = useRef<HTMLInputElement>(null);
@@ -78,10 +83,44 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     waitingForUserResponseRef.current = false;
   };
 
+  const showEmotionNotice = useCallback((text: string, shake = false, duration = 5000) => {
+    if (emotionNoticeTimerRef.current) clearTimeout(emotionNoticeTimerRef.current);
+    setEmotionNotice(text);
+    setIgnoredShake(shake);
+    setEmotionNoticeVisible(true);
+    emotionNoticeTimerRef.current = setTimeout(() => {
+      setEmotionNoticeVisible(false);
+      setIgnoredShake(false);
+    }, duration);
+  }, []);
+
+  const clearEmotionNotice = useCallback(() => {
+    if (emotionNoticeTimerRef.current) clearTimeout(emotionNoticeTimerRef.current);
+    emotionNoticeTimerRef.current = null;
+    setEmotionNoticeVisible(false);
+    setIgnoredShake(false);
+  }, []);
+
   const registerUserActivity = useCallback(() => {
     lastInteractionTimeRef.current = Date.now();
     clearIgnoredTimer();
-  }, []);
+    clearEmotionNotice();
+  }, [clearEmotionNotice]);
+
+  const buildContext = useCallback((source: ChatMessage[]) =>
+    source.slice(-6).map((m) => ({
+      role: m.role === 'pet' ? 'model' as const : 'user' as const,
+      content: m.text,
+    })), []);
+
+  const clearChat = useCallback(() => {
+    clearEmotionNotice();
+    setMessages([]);
+    setInputText('');
+    setIsThinking(false);
+    setCurrentEmotion('feliz');
+    setAnimationType('breathe');
+  }, [clearEmotionNotice]);
 
   // Save pet stats changes to persistent storage
   const syncPetStats = (newEnergy: number, newBoredom: number) => {
@@ -121,6 +160,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       clearActionTimeout();
       clearIgnoredTimer();
       soundService.stopThinking();
+      if (emotionNoticeTimerRef.current) clearTimeout(emotionNoticeTimerRef.current);
     };
   }, [activePet.petId]);
 
@@ -178,17 +218,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
       setCurrentEmotion(emotion);
       setAnimationType(animation);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `request_${Date.now()}`,
-          role: 'pet',
-          text: phrase,
-          emotion,
-          timestamp: Date.now(),
-        },
-      ]);
-
+      showEmotionNotice(phrase, false, 6500);
       waitingForUserResponseRef.current = true;
 
       // The pet gets sad/annoyed if the requested action is ignored.
@@ -204,23 +234,14 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
         setCurrentEmotion(nextEmotion);
         setAnimationType(isSleepy ? 'sleep' : 'breathe');
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `need_ignore_${Date.now()}`,
-            role: 'pet',
-            text: nextText,
-            emotion: nextEmotion,
-            timestamp: Date.now(),
-          },
-        ]);
+        showEmotionNotice(nextText, true, 6500);
         waitingForUserResponseRef.current = false;
         ignoredStepTimerRef.current = null;
       }, waitMs);
     }, 30000);
 
     return () => clearInterval(attentionInterval);
-  }, [activePet.personality, energy, boredom, isThinking]);
+  }, [activePet.personality, energy, boredom, isThinking, showEmotionNotice]);
 
   // 4. Spontaneous idle conversation. The pet talks by itself when the user leaves it alone.
   // If ignored after a spontaneous comment, it reacts with a random annoyed/sleepy follow-up
@@ -242,17 +263,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
       setCurrentEmotion('feliz');
       setAnimationType('breathe');
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `spont_${Date.now()}`,
-          role: 'pet',
-          text: phrase,
-          emotion: 'feliz',
-          timestamp: Date.now(),
-        },
-      ]);
-
+      showEmotionNotice(phrase, false, 6500);
       waitingForUserResponseRef.current = true;
 
       // The pet waits a random 30-90 seconds before reacting to being ignored.
@@ -275,24 +286,14 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
         setCurrentEmotion(nextEmotion);
         setAnimationType(isSleepy ? 'sleep' : 'breathe');
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `ign_${Date.now()}`,
-            role: 'pet',
-            text: nextText,
-            emotion: nextEmotion,
-            timestamp: Date.now(),
-          },
-        ]);
-
+        showEmotionNotice(nextText, true, 6500);
         waitingForUserResponseRef.current = false;
         ignoredStepTimerRef.current = null;
       }, waitMs);
     }, 30000);
 
     return () => clearInterval(spontaneousInterval);
-  }, [activePet.personality, energy, isThinking]);
+  }, [activePet.personality, energy, isThinking, showEmotionNotice]);
 
   // Handle Quick Actions
   const handleQuickAction = async (actionKey: QuickActionKey) => {
@@ -424,7 +425,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
     try {
       const interactionPet = { ...activePet, energy, boredom };
-      const response = await processPetInteraction(interactionPet, player, promptText, actionType);
+      const response = await processPetInteraction(interactionPet, player, promptText, actionType, buildContext(messages));
 
       setCurrentEmotion(response.emotion);
       if (response.emotion === 'risa') setAnimationType('laugh');
@@ -439,6 +440,10 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           text: response.message,
           emotion: response.emotion,
           timestamp: Date.now(),
+          question: promptText,
+          retryable: response.retryable,
+          question: text,
+          retryable: response.retryable,
         },
       ]);
 
@@ -465,6 +470,57 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     }
   };
 
+  const handleRetry = async (messageId: string) => {
+    const target = messages.find((message) => message.id === messageId);
+    if (!target?.question || isThinking) return;
+
+    registerUserActivity();
+    clearActionTimeout();
+    setIsThinking(true);
+    setCurrentEmotion('pensando');
+    setAnimationType('talk');
+    soundService.startThinking();
+
+    try {
+      const interactionPet = { ...activePet, energy, boredom };
+      const context = buildContext(messages.filter((message) => message.id !== messageId));
+      const response = await processPetInteraction(interactionPet, player, target.question, 'chat', context);
+
+      soundService.playSuccess();
+      setIsThinking(false);
+      setCurrentEmotion(response.emotion);
+      setAnimationType(response.emotion === 'risa' ? 'laugh' : response.emotion === 'curioso' ? 'curious' : 'breathe');
+
+      setMessages((prev) => [
+        ...prev.filter((message) => message.id !== messageId),
+        {
+          id: `retry_${Date.now()}`,
+          role: 'pet',
+          text: response.message,
+          emotion: response.emotion,
+          timestamp: Date.now(),
+          question: target.question,
+          retryable: response.retryable,
+        },
+      ]);
+    } catch {
+      soundService.stopThinking();
+      setIsThinking(false);
+      setCurrentEmotion('molesto');
+      setAnimationType('breathe');
+      setMessages((prev) => [
+        ...prev.filter((message) => message.id !== messageId),
+        {
+          ...target,
+          text: '⚠️ No pude responder esta vez.',
+          emotion: 'molesto',
+          timestamp: Date.now(),
+          retryable: true,
+        },
+      ]);
+    }
+  };
+
   // Handle Free Chat Message
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -474,6 +530,8 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     registerUserActivity();
     clearActionTimeout();
 
+    const contextBefore = buildContext(messages);
+    setMessages((prev) => [...prev, { id: `user_${Date.now()}`, role: 'user', text, timestamp: Date.now() }]);
     setInputText('');
     setIsThinking(true);
     setCurrentEmotion('pensando');
@@ -486,7 +544,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
     try {
       const interactionPet = { ...activePet, energy, boredom };
-      const response = await processPetInteraction(interactionPet, player, text);
+      const response = await processPetInteraction(interactionPet, player, text, 'chat', contextBefore);
 
       soundService.playSuccess();
       setIsThinking(false);
@@ -534,163 +592,116 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     }
   };
 
-  // Get latest pet message to display in speech bubble
-  const latestPetMessage =
-    [...messages].reverse().find((m) => m.role === 'pet') || messages[messages.length - 1];
+  const latestPetMessageId = [...messages].reverse().find((message) => message.role === 'pet')?.id;
+
+  useEffect(() => {
+    if (chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+  }, [messages, isThinking]);
+
+  const haloColor =
+    currentEmotion === 'molesto' ? 'rgba(239,68,68,0.30)' :
+    currentEmotion === 'risa' ? 'rgba(56,189,248,0.32)' :
+    currentEmotion === 'feliz' ? 'rgba(59,130,246,0.28)' :
+    currentEmotion === 'curioso' ? 'rgba(168,85,247,0.25)' :
+    currentEmotion === 'sorpresa' ? 'rgba(250,204,21,0.28)' :
+    currentEmotion === 'durmiendo' ? 'rgba(99,102,241,0.24)' :
+    currentEmotion === 'comiendo' ? 'rgba(249,115,22,0.28)' :
+    'rgba(56,189,248,0.24)';
 
   return (
-    <div className="w-full h-full relative flex flex-col justify-between p-3 select-none overflow-hidden font-['Nunito']">
-      {/* Real Background Wallpaper with no white overlay */}
+    <div className="w-full h-full relative flex flex-col p-3 select-text overflow-hidden font-['Nunito']">
+      <style>{`
+        @keyframes mascotHaloPulse { 0%,100% { transform:scale(.92); opacity:.55 } 50% { transform:scale(1.08); opacity:1 } }
+        @keyframes mascotDisco { 0%,100% { background:rgba(59,130,246,.26) } 20% { background:rgba(168,85,247,.28) } 40% { background:rgba(236,72,153,.28) } 60% { background:rgba(34,197,94,.28) } 80% { background:rgba(250,204,21,.30) } }
+        @keyframes mascotShake { 0%,100% { transform:translateX(0) } 20% { transform:translateX(-4px) } 40% { transform:translateX(4px) } 60% { transform:translateX(-3px) } 80% { transform:translateX(3px) } }
+        .mascot-selectable { user-select:text !important; -webkit-user-select:text !important; -webkit-touch-callout:default; }
+      `}</style>
+
       <PetBackground />
 
-      {/* Top Floating Controls: [🐾 Mascotas] (left) and [Salir] (right) */}
-      <div className="w-full z-20 flex items-center justify-between shrink-0 pt-0.5">
-        <button
-          type="button"
-          onClick={() => {
-            soundService.playButton();
-            onGoToMyPets();
-          }}
-          title="Ver mis mascotas"
-          className="px-2.5 py-1 rounded-xl bg-white/80 hover:bg-white text-slate-800 text-xs font-['Fredoka'] font-medium shadow-2xs transition-all cursor-pointer flex items-center gap-1 border border-amber-900/10"
-        >
-          <span>🐾</span>
-          <span>Mascotas</span>
+      <div className="w-full z-30 flex items-center justify-between shrink-0 pt-0.5">
+        <button type="button" onClick={() => { soundService.playButton(); onGoToMyPets(); }} className="px-2.5 py-1 rounded-xl bg-white/80 text-slate-800 text-xs font-['Fredoka'] font-medium shadow-2xs border border-amber-900/10">
+          🐾 Mascotas
         </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            soundService.playButton();
-            onLogout();
-          }}
-          title="Cerrar sesión"
-          className="px-2.5 py-1 rounded-xl bg-white/80 hover:bg-white text-slate-700 text-xs font-['Fredoka'] font-medium shadow-2xs transition-all cursor-pointer border border-amber-900/10"
-        >
+        <button type="button" onClick={() => { soundService.playButton(); onLogout(); }} className="px-2.5 py-1 rounded-xl bg-white/80 text-slate-700 text-xs font-['Fredoka'] font-medium shadow-2xs border border-amber-900/10">
           Salir
         </button>
       </div>
 
-      {/* Left Vertical Energy Bar (Energía) */}
-      <div
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 pointer-events-none"
-        title={`Energía: ${energy}%`}
-      >
+      <div className="absolute left-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 pointer-events-none">
         <span className="px-1 rounded-full bg-white/90 border border-white text-[11px] font-bold text-amber-600 shadow-md">⚡</span>
         <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-black/35 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-black/80 shadow-lg ring-1 ring-white/70">
-          <div
-            className="w-full rounded-full bg-gradient-to-t from-amber-500 via-amber-400 to-yellow-300 transition-all duration-700"
-            style={{ height: `${energy}%` }}
-          />
+          <div className="w-full rounded-full bg-gradient-to-t from-amber-500 via-amber-400 to-yellow-300 transition-all duration-700" style={{height:`${energy}%`}} />
         </div>
       </div>
 
-      {/* Right Vertical Fun Bar (depletes over time) */}
-      <div
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 pointer-events-none"
-        title={`Diversión: ${100 - boredom}%`}
-      >
+      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 pointer-events-none">
         <span className="px-1 rounded-full bg-white/90 border border-white text-[11px] font-bold text-indigo-600 shadow-md">🫧</span>
         <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-black/35 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-black/80 shadow-lg ring-1 ring-white/70">
-          <div
-            className="w-full rounded-full bg-gradient-to-t from-indigo-600 via-indigo-400 to-cyan-300 transition-all duration-700"
-            style={{ height: Math.max(100 - boredom, 5) + "%" }}
-          />
+          <div className="w-full rounded-full bg-gradient-to-t from-indigo-600 via-indigo-400 to-cyan-300 transition-all duration-700" style={{height:Math.max(100-boredom,5)+'%'}} />
         </div>
       </div>
 
-      {/* Main Pet Sanctuary Area: Priority element occupying most of the room */}
-      <div className="w-full flex-1 flex flex-col items-center justify-center my-auto z-10 min-h-0">
-        {/* Pet Name & Discreet Rename */}
-        <div className="text-center mb-1 shrink-0">
+      <div className="w-full flex flex-col items-center shrink-0 z-10 pt-1">
+        <div className="text-center">
           <div className="flex items-center justify-center gap-1">
-            <h2 className="font-['Fredoka'] font-bold text-xl sm:text-2xl text-slate-900 drop-shadow-xs tracking-wide uppercase">
-              {activePet.name}
-            </h2>
-            {onRenamePet && (
-              <button
-                type="button"
-                onClick={() => {
-                  soundService.playButton();
-                  setShowRenameModal(true);
-                }}
-                title="Cambiar nombre"
-                className="p-1 rounded-lg text-slate-400 hover:text-amber-800 hover:bg-white/60 transition-colors cursor-pointer text-[11px]"
-              >
-                ✏️
-              </button>
-            )}
+            <h2 className="font-['Fredoka'] font-bold text-xl sm:text-2xl text-slate-900 drop-shadow-xs tracking-wide uppercase">{activePet.name}</h2>
+            {onRenamePet && <button type="button" onClick={() => { soundService.playButton(); setShowRenameModal(true); }} className="p-1 rounded-lg text-slate-400 hover:text-amber-800 text-[11px]">✏️</button>}
           </div>
-          <p className="text-[11px] text-slate-600 font-semibold -mt-0.5">
-            {species.displayName}
-          </p>
+          <p className="text-[11px] text-slate-600 font-semibold -mt-0.5">{species.displayName}</p>
         </div>
 
-        {/* Large Central Pet Sprite */}
-        <div className="relative flex flex-col items-center justify-center my-auto">
-          <SpriteSheetRenderer
-            pet={activePet}
-            emotion={currentEmotion}
-            animationType={animationType}
-            size="hero"
+        <div className="relative flex items-center justify-center mt-0.5">
+          <div
+            className={`absolute w-44 h-44 sm:w-52 sm:h-52 rounded-full blur-2xl pointer-events-none ${ignoredShake ? 'mascot-shake' : ''}`}
+            style={animationType === 'dance'
+              ? { animation: 'mascotDisco 1.8s ease-in-out infinite' }
+              : { background: `radial-gradient(circle, ${haloColor} 0%, rgba(255,255,255,0) 72%)`, animation: 'mascotHaloPulse 2.4s ease-in-out 2' }}
+          />
+          <SpriteSheetRenderer pet={activePet} emotion={currentEmotion} animationType={animationType} size="hero"
             onClick={() => {
               registerUserActivity();
               soundService.playButton();
               setCurrentEmotion('feliz');
               setAnimationType('jump');
               clearActionTimeout();
-              actionTimeoutRef.current = setTimeout(() => {
-                setAnimationType('breathe');
-              }, 1200);
+              actionTimeoutRef.current=setTimeout(()=>setAnimationType('breathe'),1200);
             }}
-            className="transition-transform active:scale-95"
-          />
+            className={ignoredShake ? 'mascot-shake transition-transform active:scale-95' : 'transition-transform active:scale-95'} />
 
-          {/* Discreet, subtle ground shadow */}
-          <div className="w-24 h-2 bg-black/15 rounded-full blur-[2px] -mt-1 pointer-events-none" />
+          {emotionNoticeVisible && emotionNotice && (
+            <div className={`absolute top-[78%] left-1/2 -translate-x-1/2 z-40 max-w-[260px] px-3 py-2 rounded-2xl bg-white/55 backdrop-blur-md border border-white/70 shadow-lg text-slate-800 text-xs sm:text-sm font-medium text-center leading-snug ${ignoredShake ? 'mascot-shake' : ''}`}>
+              {emotionNotice}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Lower Secondary Area: Message + Compact Actions + Input */}
-      <div className="w-full flex flex-col gap-1.5 z-20 shrink-0 pb-1">
-        {/* Compact Pet Speech Bubble */}
-        <div className="w-full max-w-xs mx-auto min-h-[36px] flex items-center justify-center px-2">
-          {isThinking ? (
-            <div className="px-3 py-1 rounded-xl bg-white/90 border border-amber-900/10 text-xs font-medium text-slate-600 shadow-2xs flex items-center gap-1.5 animate-pulse">
-              <span>Pensando...</span>
+      <div ref={chatScrollRef} className="w-full max-w-md mx-auto flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 py-2 space-y-1.5 z-20 scrollbar-thin">
+        {messages.map((message) => {
+          const isUser=message.role==='user';
+          const isLatestRetry=!isUser && message.id===latestPetMessageId;
+          return (
+            <div key={message.id} className={`flex ${isUser?'justify-end':'justify-start'} items-end gap-1`}>
+              {!isUser && <span className="text-xs shrink-0">🐨</span>}
+              <div className={`max-w-[78%] rounded-2xl px-3 py-2 text-xs sm:text-sm leading-snug shadow-sm border mascot-selectable ${isUser?'bg-green-100/95 border-green-200 text-green-950 rounded-br-md':'bg-sky-100/95 border-sky-200 text-sky-950 rounded-bl-md'}`}>
+                {message.text}
+              </div>
+              {isLatestRetry && <button type="button" onClick={()=>handleRetry(message.id)} disabled={isThinking} title="Reintentar esta pregunta" className="shrink-0 w-7 h-7 rounded-full bg-white/80 border border-sky-200 text-sky-700 shadow-sm text-sm active:scale-90 disabled:opacity-40">↻</button>}
             </div>
-          ) : latestPetMessage ? (
-            <div className="px-3.5 py-1.5 rounded-2xl bg-white/90 text-slate-800 text-xs sm:text-sm font-medium text-center shadow-2xs border border-amber-900/10 leading-snug">
-              "{latestPetMessage.text}"
-            </div>
-          ) : null}
+          );
+        })}
+        {isThinking && <div className="flex justify-start items-end gap-1"><span className="text-xs">🐨</span><div className="px-3 py-2 rounded-2xl rounded-bl-md bg-sky-100/90 border border-sky-200 text-sky-700 text-xs shadow-sm animate-pulse">Pensando...</div></div>}
+      </div>
+
+      <div className="w-full flex flex-col gap-1.5 z-30 shrink-0 pb-1">
+        <div className="flex items-center justify-center gap-1.5">
+          <QuickActions onAction={handleQuickAction} disabled={isThinking} />
+          <button type="button" disabled={isThinking||messages.length===0} onClick={()=>{soundService.playButton();clearChat();}} title="Borrar conversación de esta sesión" className="px-2.5 py-1.5 rounded-xl bg-white/75 text-slate-600 text-xs border border-amber-900/10 shadow-2xs active:scale-95 disabled:opacity-40">🗑️</button>
         </div>
-
-        {/* Single-row QuickActions: [ Chiste ] [ Curiosidad ] [ Acciones ▾ ] */}
-        <QuickActions onAction={handleQuickAction} disabled={isThinking} />
-
-        {/* Compact Message Input */}
         <form onSubmit={handleSendMessage} className="w-full flex items-center gap-1.5 pt-0.5">
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputText}
-            onChange={(e) => {
-              setInputText(e.target.value);
-              registerUserActivity();
-            }}
-            placeholder={`Habla con ${activePet.name}...`}
-            maxLength={150}
-            className="flex-1 px-3 py-1.5 rounded-xl bg-white/85 hover:bg-white focus:bg-white text-slate-800 font-medium text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 border border-amber-900/15 shadow-2xs transition-colors"
-          />
-          <button
-            type="submit"
-            disabled={!inputText.trim() || isThinking}
-            onClick={() => soundService.playButton()}
-            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-2xs transition-all active:scale-95 disabled:opacity-40 cursor-pointer"
-          >
-            ➤
-          </button>
+          <input ref={inputRef} type="text" value={inputText} onChange={(e)=>{setInputText(e.target.value);registerUserActivity();}} placeholder={`Habla con ${activePet.name}...`} maxLength={150} className="flex-1 px-3 py-1.5 rounded-xl bg-white/85 text-slate-800 font-medium text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 border border-amber-900/15 shadow-2xs" />
+          <button type="submit" disabled={!inputText.trim()||isThinking} onClick={()=>soundService.playButton()} className="px-3 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-xs shadow-2xs active:scale-95 disabled:opacity-40">➤</button>
         </form>
       </div>
 
