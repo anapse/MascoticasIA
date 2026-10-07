@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createPlayer, findPlayerByName } from '../services/storage';
+import { createPlayer } from '../services/storage';
 import { PlayerModel } from '../types/pet';
 import { PetBackground } from '../components/PetBackground';
 
