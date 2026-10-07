@@ -539,7 +539,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           emotion: response.emotion,
           timestamp: Date.now(),
           question: text,
-          retryable: response.retryable,
+          retryable: true,
         },
       ]);
 
