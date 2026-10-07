@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { loginPlayer, findPlayerByName } from '../services/storage';
+import { loginPlayer } from '../services/storage';
 import { PlayerModel } from '../types/pet';
 import { PetBackground } from '../components/PetBackground';
 
@@ -35,14 +35,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     setErrorMessage('');
 
     try {
-      // Check if user exists
-      const existing = await findPlayerByName(cleanNick);
-      if (!existing) {
-        setLoading(false);
-        setShowNotFoundModal(true);
-        return;
-      }
-
       const res = await loginPlayer(cleanNick, cleanSecret);
       setLoading(false);
 
