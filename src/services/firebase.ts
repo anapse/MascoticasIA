@@ -1,5 +1,5 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -58,12 +58,6 @@ export async function initFirebaseIfAvailable(): Promise<boolean> {
     db = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
     auth = getAuth(app);
 
-    // Test connection
-    try {
-      await getDocFromServer(doc(db, 'test', 'connection'));
-    } catch {
-      // Connection checked
-    }
     return true;
   } catch (err) {
     console.info('Firebase initialization status: running in local persistent mode.', err);
