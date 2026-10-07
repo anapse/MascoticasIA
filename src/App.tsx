@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PetModel, PlayerModel } from './types/pet';
-import { getPetsForOwner, saveCurrentSession, adoptPet, updatePet, recordVisit } from './services/storage';
+import { getPetsForOwner, saveCurrentSession, adoptPet, updatePet, recordVisit, logoutFirebase } from './services/storage';
 import { initFirebaseIfAvailable } from './services/firebase';
 import { WelcomeScreen } from './pages/WelcomeScreen';
 import { LoginScreen } from './pages/LoginScreen';
@@ -96,7 +96,7 @@ export const App: React.FC = () => {
     setPlayer(null);
     setPets([]);
     setActivePetId(null);
-    saveCurrentSession(null);
+    void logoutFirebase();
     setCurrentView('welcome');
   };
 
