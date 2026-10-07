@@ -355,6 +355,13 @@ export async function recordVisit(userId: string, petId: string): Promise<void> 
   }
 }
 
+export async function logoutFirebase(): Promise<void> {
+  if (auth?.currentUser) {
+    try { await signOut(auth); } catch {}
+  }
+  saveCurrentSession(null);
+}
+
 export function saveCurrentSession(player: PlayerModel | null) {
   if (player) {
     localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(player));
