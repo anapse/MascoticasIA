@@ -66,8 +66,15 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
   const ignoredStepTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastInteractionTimeRef = useRef<number>(Date.now());
   const waitingForUserResponseRef = useRef<boolean>(false);
+  const danceActiveRef = useRef<boolean>(false);
 
   // Helper to clear pending animation resets
+  const stopDance = useCallback(() => {
+    danceActiveRef.current = false;
+    soundService.stopDanceMusic();
+    setAnimationType((current) => current === 'dance' ? 'breathe' : current);
+  }, []);
+
   const clearActionTimeout = () => {
     if (actionTimeoutRef.current) {
       clearTimeout(actionTimeoutRef.current);
@@ -114,13 +121,14 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
     })), []);
 
   const clearChat = useCallback(() => {
+    stopDance();
     clearEmotionNotice();
     setMessages([]);
     setInputText('');
     setIsThinking(false);
     setCurrentEmotion('feliz');
     setAnimationType('breathe');
-  }, [clearEmotionNotice]);
+  }, [clearEmotionNotice, stopDance]);
 
   // Save pet stats changes to persistent storage
   const syncPetStats = (newEnergy: number, newBoredom: number) => {
@@ -156,13 +164,13 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
     return () => {
       clearTimeout(timer);
-      soundService.stopDanceMusic();
+      stopDance();
       clearActionTimeout();
       clearIgnoredTimer();
       soundService.stopThinking();
       if (emotionNoticeTimerRef.current) clearTimeout(emotionNoticeTimerRef.current);
     };
-  }, [activePet.petId]);
+  }, [activePet.petId, stopDance]);
 
   // 2. Slow decay of energy & slow rise of boredom over time
   useEffect(() => {
@@ -297,8 +305,12 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
   // Handle Quick Actions
   const handleQuickAction = async (actionKey: QuickActionKey) => {
+    // If already dancing, pressing Bailar again does absolutely nothing.
+    if (actionKey === 'dance' && danceActiveRef.current) return;
+
     registerUserActivity();
     clearActionTimeout();
+    stopDance();
 
     // 1. Comer (3.5s duration)
     if (actionKey === 'feed') {
@@ -324,6 +336,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
     // 2. Bailar (20s duration)
     if (actionKey === 'dance') {
+      danceActiveRef.current = true;
       soundService.playDance();
       setCurrentEmotion('saluda');
       setAnimationType('dance');
@@ -334,6 +347,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       syncPetStats(energy, nextBoredom);
 
       actionTimeoutRef.current = setTimeout(() => {
+        stopDance();
         setCurrentEmotion('feliz');
         setAnimationType('breathe');
 
@@ -431,6 +445,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
   };
 
   const handleRetry = async (messageId: string) => {
+    stopDance();
     const targetIndex = messages.findIndex((message) => message.id === messageId);
     if (targetIndex < 0 || isThinking) return;
 
@@ -497,6 +512,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
   // Handle Free Chat Message
   const handleSendMessage = async (e?: React.FormEvent) => {
+    stopDance();
     if (e) e.preventDefault();
     const text = inputText.trim();
     if (!text || isThinking) return;
@@ -598,10 +614,10 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       <PetBackground />
 
       <div className="w-full z-30 flex items-center justify-between shrink-0 pt-0.5">
-        <button type="button" onClick={() => { soundService.playButton(); onGoToMyPets(); }} className="px-2.5 py-1 rounded-xl bg-white/80 text-slate-800 text-xs font-['Fredoka'] font-medium shadow-2xs border border-amber-900/10">
+        <button type="button" onClick={() => { stopDance(); soundService.playButton(); onGoToMyPets(); }} className="px-2.5 py-1 rounded-xl bg-white/80 text-slate-800 text-xs font-['Fredoka'] font-medium shadow-2xs border border-amber-900/10">
           🐾 Mascotas
         </button>
-        <button type="button" onClick={() => { soundService.playButton(); onLogout(); }} className="px-2.5 py-1 rounded-xl bg-white/80 text-slate-700 text-xs font-['Fredoka'] font-medium shadow-2xs border border-amber-900/10">
+        <button type="button" onClick={() => { stopDance(); soundService.playButton(); onLogout(); }} className="px-2.5 py-1 rounded-xl bg-white/80 text-slate-700 text-xs font-['Fredoka'] font-medium shadow-2xs border border-amber-900/10">
           Salir
         </button>
       </div>
@@ -638,6 +654,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           />
           <SpriteSheetRenderer pet={activePet} emotion={currentEmotion} animationType={animationType} size="hero"
             onClick={() => {
+              stopDance();
               registerUserActivity();
               soundService.playButton();
               setCurrentEmotion('feliz');
@@ -678,7 +695,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           <button type="button" disabled={isThinking||messages.length===0} onClick={()=>{soundService.playButton();clearChat();}} title="Borrar conversación de esta sesión" className="px-2.5 py-1.5 rounded-xl bg-white/75 text-slate-600 text-xs border border-amber-900/10 shadow-2xs active:scale-95 disabled:opacity-40">🗑️</button>
         </div>
         <form onSubmit={handleSendMessage} className="w-full flex items-center gap-1.5 pt-0.5">
-          <input ref={inputRef} type="text" value={inputText} onChange={(e)=>{setInputText(e.target.value);registerUserActivity();}} placeholder={`Habla con ${activePet.name}...`} maxLength={150} className="flex-1 px-3 py-1.5 rounded-xl bg-white/85 text-slate-800 font-medium text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 border border-amber-900/15 shadow-2xs" />
+          <input ref={inputRef} type="text" value={inputText} onChange={(e)=>{setInputText(e.target.value);registerUserActivity();if (danceActiveRef.current) stopDance();}} placeholder={`Habla con ${activePet.name}...`} maxLength={150} className="flex-1 px-3 py-1.5 rounded-xl bg-white/85 text-slate-800 font-medium text-xs placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500 border border-amber-900/15 shadow-2xs" />
           <button type="submit" disabled={!inputText.trim()||isThinking} onClick={()=>soundService.playButton()} className="px-3 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-xs shadow-2xs active:scale-95 disabled:opacity-40">➤</button>
         </form>
       </div>
