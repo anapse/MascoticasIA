@@ -4,6 +4,102 @@ import { getPersonality } from '../pets/personalities';
 import { getPetSpecies } from '../pets/petConfig';
 import { DAILY_AI_MESSAGE_LIMIT, getDailyAiMessageCount, incrementDailyAiMessageCount } from './storage';
 
+
+function normalizeQuestion(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+function isTimeQuestion(value: string): boolean {
+  const q = normalizeQuestion(value);
+  return /\b(que hora es|dime la hora|hora actual|hora de peru|hora en peru|hora en ica|que hora tenemos|sabes la hora)\b/.test(q);
+}
+
+function isWeatherQuestion(value: string): boolean {
+  const q = normalizeQuestion(value);
+  return /\b(clima|tiempo|temperatura|calor|frio|llueve|lluvia|pronostico)\b/.test(q)
+    && /\b(ica|peru|aqui|ahora|hoy|afuera)\b/.test(q);
+}
+
+function getPeruTimeAnswer(): AiChatResponse {
+  const now = new Date();
+  const time = new Intl.DateTimeFormat('es-PE', {
+    timeZone: 'America/Lima',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(now);
+
+  return {
+    message: `En Ica, Perú, son las ${time}. ⏰`,
+    emotion: 'sorpresa',
+    source: 'local_rule',
+  };
+}
+
+async function getIcaWeatherAnswer(): Promise<AiChatResponse> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=-14.0678&longitude=-75.7286&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m&timezone=America%2FLima';
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error(`Weather API returned ${response.status}`);
+
+    const data = await response.json() as {
+      current?: {
+        temperature_2m?: number;
+        apparent_temperature?: number;
+        weather_code?: number;
+        wind_speed_10m?: number;
+      };
+      current_units?: {
+        temperature_2m?: string;
+      };
+    };
+
+    const current = data.current;
+    if (!current || typeof current.temperature_2m !== 'number') throw new Error('Weather data unavailable');
+
+    const descriptions: Record<number, string> = {
+      0: 'despejado',
+      1: 'mayormente despejado',
+      2: 'parcialmente nublado',
+      3: 'nublado',
+      45: 'con neblina',
+      48: 'con neblina',
+      51: 'con llovizna ligera',
+      53: 'con llovizna',
+      55: 'con bastante llovizna',
+      61: 'con lluvia ligera',
+      63: 'con lluvia',
+      65: 'con lluvia fuerte',
+      80: 'con chubascos ligeros',
+      81: 'con chubascos',
+      82: 'con chubascos fuertes',
+      95: 'con tormenta',
+      96: 'con tormenta y granizo',
+      99: 'con tormenta y granizo fuerte',
+    };
+
+    const description = descriptions[current.weather_code ?? -1] || 'con condiciones variables';
+    const feels = typeof current.apparent_temperature === 'number'
+      ? ` Se siente como ${Math.round(current.apparent_temperature)} °C.`
+      : '';
+
+    return {
+      message: `En Ica ahora hay ${Math.round(current.temperature_2m)} °C y está ${description}.${feels} 🌤️`,
+      emotion: 'curioso',
+      source: 'local_rule',
+    };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export async function processPetInteraction(
   pet: PetModel,
   player: PlayerModel,
@@ -54,6 +150,25 @@ export async function processPetInteraction(
       emotion: 'curioso',
       source: 'local_fact',
     };
+  }
+
+  // Real-time local utilities: time is calculated on-device and weather comes from Open-Meteo.
+  if (userInput && isTimeQuestion(userInput)) {
+    return getPeruTimeAnswer();
+  }
+
+  if (userInput && isWeatherQuestion(userInput)) {
+    try {
+      return await getIcaWeatherAnswer();
+    } catch (err) {
+      console.warn('Weather lookup failed', err);
+      return {
+        message: 'No pude consultar el clima de Ica ahora mismo. Inténtalo otra vez. 🌤️',
+        emotion: 'curioso',
+        source: 'local_rule',
+        retryable: true,
+      };
+    }
   }
 
   // 3. Child Safety filter locally
