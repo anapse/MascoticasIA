@@ -88,7 +88,7 @@ class SoundService {
         gain.gain.exponentialRampToValueAtTime(0.001, now + note.time + note.dur);
 
         osc.connect(gain);
-        gain.connect(this.danceGain!);
+        gain.connect(ctx.destination);
 
         osc.start(now + note.time);
         osc.stop(now + note.time + note.dur);
@@ -226,7 +226,7 @@ class SoundService {
         gain.gain.setValueAtTime(0.045, start);
         gain.gain.exponentialRampToValueAtTime(0.001, start + 0.13);
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(this.danceGain!);
         osc.start(start);
         osc.stop(start + 0.14);
       });
