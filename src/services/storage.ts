@@ -2,14 +2,12 @@ import { PetModel, PetSpeciesKey, PlayerModel } from '../types/pet';
 import { hashSecret, normalizePlayerId } from './crypto';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
 import {
-  collection,
   deleteDoc,
   doc,
   getDoc,
   getDocs,
   query,
   setDoc,
-  where,
 } from 'firebase/firestore';
 import {
   createUserWithEmailAndPassword,
