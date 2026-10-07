@@ -133,7 +133,7 @@ export async function processPetInteraction(
   // Gemini keys stay only in Cloudflare; never expose them in this frontend.
   const AI_BACKEND_URL = 'https://bakenmascota.anapse-video.workers.dev';
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   const systemInstruction = [
     'Eres una mascota virtual infantil, amable y segura.',
@@ -155,7 +155,7 @@ export async function processPetInteraction(
         prompt: finalQuery,
         systemInstruction,
         taskType: 'auto',
-        maxTokens: 300,
+        maxTokens: 160,
       }),
     });
 
