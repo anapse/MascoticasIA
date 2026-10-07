@@ -45,7 +45,9 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 
 export async function initFirebaseIfAvailable(): Promise<boolean> {
   try {
-    if (!firebaseConfig || !firebaseConfig.apiKey || firebaseConfig.apiKey.trim() === '') {
+    if (!firebaseConfig?.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId) {
+      db = null;
+      auth = null;
       return false;
     }
 
@@ -60,7 +62,9 @@ export async function initFirebaseIfAvailable(): Promise<boolean> {
 
     return true;
   } catch (err) {
-    console.info('Firebase initialization status: running in local persistent mode.', err);
+    db = null;
+    auth = null;
+    console.info('Firebase initialization failed; local persistence remains available.', err);
     return false;
   }
 }
