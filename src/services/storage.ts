@@ -140,12 +140,11 @@ export async function createPlayer(
       secretHash: player.secretHash,
     });
   } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, `players/${playerId}`);
-      if (auth?.currentUser) {
-        try { await deleteUser(auth.currentUser); } catch {}
-      }
-      return { success: false, error: 'No se pudo guardar la cuenta en Firebase' };
+    handleFirestoreError(err, OperationType.CREATE, `players/${playerId}`);
+    if (auth?.currentUser) {
+      try { await deleteUser(auth.currentUser); } catch {}
     }
+    return { success: false, error: 'No se pudo guardar la cuenta en Firebase' };
   }
 
   return { success: true, player };
