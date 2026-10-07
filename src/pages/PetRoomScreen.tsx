@@ -316,16 +316,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         setCurrentEmotion('feliz');
         setAnimationType('breathe');
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `feed_${Date.now()}`,
-            role: 'pet',
-            text: '¡Qué rico! Ahora tengo más energía.',
-            emotion: 'feliz',
-            timestamp: Date.now(),
-          },
-        ]);
+        showEmotionNotice('¡Qué rico! Ahora tengo más energía. 🍎', false, 3500);
       }, 3500);
 
       return;
@@ -336,16 +327,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       soundService.playDance();
       setCurrentEmotion('saluda');
       setAnimationType('dance');
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `dance_start_${Date.now()}`,
-          role: 'pet',
-          text: '¡Sí! ¡Bailemos! 💃🎶',
-          emotion: 'saluda',
-          timestamp: Date.now(),
-        },
-      ]);
+      showEmotionNotice('¡Sí! ¡Bailemos! 💃🎶', false, 3500);
 
       const nextBoredom = Math.max(0, boredom - 35);
       setBoredom(nextBoredom);
@@ -355,16 +337,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         setCurrentEmotion('feliz');
         setAnimationType('breathe');
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `dance_${Date.now()}`,
-            role: 'pet',
-            text: '¡Mira mis pasos de baile! 🎶 ¿Te gustó?',
-            emotion: 'feliz',
-            timestamp: Date.now(),
-          },
-        ]);
+        showEmotionNotice('¡Mira mis pasos de baile! 🎶 ¿Te gustó?', false, 3500);
       }, 20000);
 
       return;
@@ -386,16 +359,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         setCurrentEmotion('feliz');
         setAnimationType('breathe');
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `sleep_${Date.now()}`,
-            role: 'pet',
-            text: 'Zzz... necesitaba descansar. 😴',
-            emotion: 'durmiendo',
-            timestamp: Date.now(),
-          },
-        ]);
+        showEmotionNotice('Zzz... necesitaba descansar. 😴', false, 4000);
       }, 5500);
 
       return;
@@ -442,8 +406,6 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           timestamp: Date.now(),
           question: promptText,
           retryable: response.retryable,
-          question: text,
-          retryable: response.retryable,
         },
       ]);
 
@@ -462,9 +424,11 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         {
           id: `err_${Date.now()}`,
           role: 'pet',
-          text: 'No me llegó la respuesta. ¿Probamos con un chiste o bailamos?',
+          text: '⚠️ No pude responder esta vez.',
           emotion: 'curioso',
           timestamp: Date.now(),
+          question: promptText,
+          retryable: true,
         },
       ]);
     }
