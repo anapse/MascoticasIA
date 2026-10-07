@@ -108,6 +108,7 @@ export interface AiChatResponse {
   message: string;
   emotion: EmotionType;
   source: 'local_math' | 'local_care' | 'local_joke' | 'local_fact' | 'local_rule' | 'gemini';
+  retryable?: boolean;
 }
 
 export interface ChatMessage {
@@ -116,4 +117,7 @@ export interface ChatMessage {
   text: string;
   emotion?: EmotionType;
   timestamp: number;
+  /** Original user question that produced this pet reply, used only during the current session. */
+  question?: string;
+  retryable?: boolean;
 }
