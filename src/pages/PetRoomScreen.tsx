@@ -596,20 +596,20 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
         </button>
       </div>
 
-      <div className="absolute left-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 pointer-events-none">
-        <span className="px-1 rounded-full bg-white/90 border border-white text-[11px] font-bold text-amber-600 shadow-md">⚡</span>
-        <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-black/35 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-black/80 shadow-lg ring-1 ring-white/70">
+      {/* Estado de Lolo: las dos barras quedan juntas en el borde izquierdo para no competir con el scroll del chat. */}
+      <div className="absolute left-0.5 top-[38%] z-30 flex flex-col items-center gap-1 pointer-events-none">
+        <span className="px-1 rounded-full bg-white/90 border border-white text-[10px] font-bold text-amber-600 shadow-md">🍎</span>
+        <div className="w-3 sm:w-3.5 h-20 bg-black/30 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border border-black/60 shadow-md ring-1 ring-white/60">
           <div className="w-full rounded-full bg-gradient-to-t from-amber-500 via-amber-400 to-yellow-300 transition-all duration-700" style={{height:`${energy}%`}} />
         </div>
       </div>
 
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-1 pointer-events-none">
-        <span className="px-1 rounded-full bg-white/90 border border-white text-[11px] font-bold text-indigo-600 shadow-md">🫧</span>
-        <div className="w-3.5 sm:w-4 h-36 sm:h-44 bg-black/35 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border-2 border-black/80 shadow-lg ring-1 ring-white/70">
+      <div className="absolute left-0.5 top-[58%] z-30 flex flex-col items-center gap-1 pointer-events-none">
+        <span className="px-1 rounded-full bg-white/90 border border-white text-[10px] font-bold text-indigo-600 shadow-md">🫧</span>
+        <div className="w-3 sm:w-3.5 h-20 bg-black/30 backdrop-blur-xs rounded-full p-0.5 flex flex-col justify-end overflow-hidden border border-black/60 shadow-md ring-1 ring-white/60">
           <div className="w-full rounded-full bg-gradient-to-t from-indigo-600 via-indigo-400 to-cyan-300 transition-all duration-700" style={{height:Math.max(100-boredom,5)+'%'}} />
         </div>
       </div>
-
       <div className="w-full flex flex-col items-center shrink-0 z-10 pt-1">
         <div className="text-center">
           <div className="flex items-center justify-center gap-1">
