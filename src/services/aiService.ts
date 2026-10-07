@@ -195,6 +195,7 @@ export async function processPetInteraction(
       message: shortMessage,
       emotion: 'feliz' as EmotionType,
       source: 'gemini',
+      retryable: true,
     };
   } catch (err) {
     clearTimeout(timeoutId);
