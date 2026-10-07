@@ -404,8 +404,6 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           text: response.message,
           emotion: response.emotion,
           timestamp: Date.now(),
-          question: promptText,
-          retryable: response.retryable,
         },
       ]);
 
@@ -427,27 +425,37 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           text: '⚠️ No pude responder esta vez.',
           emotion: 'curioso',
           timestamp: Date.now(),
-          question: promptText,
-          retryable: true,
         },
       ]);
     }
   };
 
   const handleRetry = async (messageId: string) => {
-    const target = messages.find((message) => message.id === messageId);
-    if (!target?.question || isThinking) return;
+    const targetIndex = messages.findIndex((message) => message.id === messageId);
+    if (targetIndex < 0 || isThinking) return;
+
+    const target = messages[targetIndex];
+    if (!target.question || !target.retryable || target.role !== 'pet') return;
 
     registerUserActivity();
     clearActionTimeout();
+
+    // Remove the old answer immediately. The user's original question stays visible.
+    setMessages((prev) => prev.filter((message) => message.id !== messageId));
     setIsThinking(true);
     setCurrentEmotion('pensando');
     setAnimationType('talk');
     soundService.startThinking();
 
     try {
+      // Context contains previous turns, but not the question being retried.
+      const previousUserIndex = [...messages.slice(0, targetIndex)].map((m, i) => ({ m, i }))
+        .reverse()
+        .find(({ m }) => m.role === 'user')?.i ?? -1;
+      const contextMessages = previousUserIndex >= 0 ? messages.slice(0, previousUserIndex) : [];
+      const context = buildContext(contextMessages);
+
       const interactionPet = { ...activePet, energy, boredom };
-      const context = buildContext(messages.filter((message) => message.id !== messageId));
       const response = await processPetInteraction(interactionPet, player, target.question, 'chat', context);
 
       soundService.playSuccess();
@@ -456,7 +464,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       setAnimationType(response.emotion === 'risa' ? 'laugh' : response.emotion === 'curioso' ? 'curious' : 'breathe');
 
       setMessages((prev) => [
-        ...prev.filter((message) => message.id !== messageId),
+        ...prev,
         {
           id: `retry_${Date.now()}`,
           role: 'pet',
@@ -464,7 +472,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
           emotion: response.emotion,
           timestamp: Date.now(),
           question: target.question,
-          retryable: response.retryable,
+          retryable: true,
         },
       ]);
     } catch {
@@ -473,12 +481,14 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       setCurrentEmotion('molesto');
       setAnimationType('breathe');
       setMessages((prev) => [
-        ...prev.filter((message) => message.id !== messageId),
+        ...prev,
         {
-          ...target,
+          id: `retry_error_${Date.now()}`,
+          role: 'pet',
           text: '⚠️ No pude responder esta vez.',
           emotion: 'molesto',
           timestamp: Date.now(),
+          question: target.question,
           retryable: true,
         },
       ]);
@@ -648,7 +658,7 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
       <div ref={chatScrollRef} className="w-full max-w-md mx-auto flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 py-2 space-y-1.5 z-20 scrollbar-thin">
         {messages.map((message) => {
           const isUser=message.role==='user';
-          const isLatestRetry=!isUser && message.id===latestPetMessageId;
+          const isLatestRetry=!isUser && message.id===latestPetMessageId && message.retryable === true;
           return (
             <div key={message.id} className={`flex ${isUser?'justify-end':'justify-start'} items-end gap-1`}>
               {!isUser && <span className="text-xs shrink-0">🐨</span>}
