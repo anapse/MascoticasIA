@@ -132,12 +132,15 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
   // Save pet stats changes to persistent storage
   const syncPetStats = (newEnergy: number, newBoredom: number) => {
-    updatePet({
-      ...activePet,
-      energy: newEnergy,
-      boredom: newBoredom,
-      lastPlayed: new Date().toISOString(),
-    });
+    void updatePet(
+      {
+        ...activePet,
+        energy: newEnergy,
+        boredom: newBoredom,
+        lastPlayed: new Date().toISOString(),
+      },
+      { persistIdentity: false },
+    );
   };
 
   // 1. Enter Room: Welcome Chime and initial greeting
