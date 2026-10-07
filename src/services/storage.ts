@@ -81,8 +81,8 @@ export async function findPlayerByName(nickname: string): Promise<PlayerModel | 
       id: playerDoc.id,
       nickname: data.nickname,
       secretHash: data.secretHash,
-      createdAt: data.createdAt,
-      lastLogin: data.lastLogin,
+      createdAt: data.createdAt ?? '',
+      lastLogin: data.lastLogin ?? '',
     };
   } catch (err) {
     handleFirestoreError(err, OperationType.GET, `players/${playerId}`);
@@ -127,13 +127,19 @@ export async function createPlayer(
     lastLogin: now,
   };
 
-  if (db) {
-    try {
-      await setDoc(doc(db, 'players', playerId), {
-        nickname: player.nickname,
-        secretHash: player.secretHash,
-      });
-    } catch (err) {
+  if (!db || !auth?.currentUser) {
+    if (auth?.currentUser) {
+      try { await signOut(auth); } catch {}
+    }
+    return { success: false, error: 'No se pudo conectar con Firebase' };
+  }
+
+  try {
+    await setDoc(doc(db, 'players', playerId), {
+      nickname: player.nickname,
+      secretHash: player.secretHash,
+    });
+  } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, `players/${playerId}`);
       if (auth?.currentUser) {
         try { await deleteUser(auth.currentUser); } catch {}
@@ -196,22 +202,9 @@ export async function loginPlayer(
     return { success: false, error: 'NOT_FOUND' };
   }
 
-  // Update lastLogin only once per successful login.
-  const lastLogin = new Date().toISOString();
-  player = { ...player, lastLogin };
-
-  try {
-    await setDoc(doc(db, 'players', player.id), {
-      nickname: player.nickname,
-      secretHash: player.secretHash,
-      createdAt: player.createdAt,
-      lastLogin,
-    });
-  } catch (err) {
-    handleFirestoreError(err, OperationType.UPDATE, `players/${player.id}`);
-    try { await signOut(auth); } catch {}
-    return { success: false, error: 'No se pudo actualizar el acceso en Firebase' };
-  }
+  // createdAt/lastLogin are runtime metadata only; Firestore keeps only
+  // the minimal player identity defined by the blueprint.
+  player = { ...player, lastLogin: new Date().toISOString() };
 
   return { success: true, player };
 }
@@ -251,17 +244,19 @@ export async function createPet(
     name: name.trim(),
   };
 
-  if (db && auth?.currentUser) {
-    try {
-      await setDoc(doc(db, 'pets', petId), {
+  if (!db || !auth?.currentUser) {
+    return { success: false, error: 'No se pudo conectar con Firebase' };
+  }
+
+  try {
+    await setDoc(doc(db, 'pets', petId), {
         name: persistedPet.name,
         ownerId: persistedPet.ownerId,
         type: persistedPet.type,
       });
-    } catch (err) {
-      handleFirestoreError(err, OperationType.CREATE, `pets/${petId}`);
-      return { success: false, error: 'No se pudo guardar la mascota en Firebase' };
-    }
+  } catch (err) {
+    handleFirestoreError(err, OperationType.CREATE, `pets/${petId}`);
+    return { success: false, error: 'No se pudo guardar la mascota en Firebase' };
   }
 
   return { success: true, pet: hydratePet(persistedPet) };
@@ -288,13 +283,13 @@ export async function updatePet(
 }
 
 export async function adoptPet(petId: string): Promise<boolean> {
-  if (db && auth?.currentUser) {
-    try {
-      await deleteDoc(doc(db, 'pets', petId));
-    } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `pets/${petId}`);
-      return false;
-    }
+  if (!db || !auth?.currentUser) return false;
+
+  try {
+    await deleteDoc(doc(db, 'pets', petId));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, `pets/${petId}`);
+    return false;
   }
 
   return true;
