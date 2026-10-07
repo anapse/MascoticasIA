@@ -9,6 +9,8 @@ class SoundService {
   private thinkingGain: GainNode | null = null;
   private isMuted: boolean = false;
   private danceTimer: ReturnType<typeof setInterval> | null = null;
+  private danceStopTimeout: ReturnType<typeof setTimeout> | null = null;
+  private danceGain: GainNode | null = null;
 
   private getContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
@@ -86,7 +88,7 @@ class SoundService {
         gain.gain.exponentialRampToValueAtTime(0.001, now + note.time + note.dur);
 
         osc.connect(gain);
-        gain.connect(ctx.destination);
+        gain.connect(this.danceGain!);
 
         osc.start(now + note.time);
         osc.stop(now + note.time + note.dur);
@@ -195,12 +197,18 @@ class SoundService {
    */
   public startDanceMusic(durationMs = 20000) {
     if (this.isMuted) return;
-    this.stopDanceMusic();
+    // Only one dance session may exist at a time. Repeated taps do nothing.
+    if (this.danceTimer || this.danceStopTimeout || this.danceGain) return;
     const ctx = this.getContext();
     if (!ctx) return;
 
+    const danceGain = ctx.createGain();
+    danceGain.gain.setValueAtTime(1, ctx.currentTime);
+    danceGain.connect(ctx.destination);
+    this.danceGain = danceGain;
+
     const playPattern = () => {
-      if (this.isMuted) return;
+      if (this.isMuted || !this.danceGain) return;
       const patterns = [
         [440, 554.37, 659.25, 554.37, 783.99, 659.25],
         [523.25, 659.25, 783.99, 659.25, 880, 783.99],
@@ -226,13 +234,36 @@ class SoundService {
 
     playPattern();
     this.danceTimer = setInterval(playPattern, 1100);
-    window.setTimeout(() => this.stopDanceMusic(), durationMs);
+    this.danceStopTimeout = window.setTimeout(() => this.stopDanceMusic(), durationMs);
   }
 
   public stopDanceMusic() {
     if (this.danceTimer) {
       clearInterval(this.danceTimer);
       this.danceTimer = null;
+    }
+    if (this.danceStopTimeout) {
+      clearTimeout(this.danceStopTimeout);
+      this.danceStopTimeout = null;
+    }
+    if (this.danceGain) {
+      const gain = this.danceGain;
+      this.danceGain = null;
+      try {
+        const ctx = this.getContext();
+        if (ctx) {
+          gain.gain.cancelScheduledValues(ctx.currentTime);
+          gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+          gain.gain.setTargetAtTime(0, ctx.currentTime, 0.01);
+          window.setTimeout(() => {
+            try { gain.disconnect(); } catch {}
+          }, 60);
+        } else {
+          gain.disconnect();
+        }
+      } catch {
+        try { gain.disconnect(); } catch {}
+      }
     }
   }
 
