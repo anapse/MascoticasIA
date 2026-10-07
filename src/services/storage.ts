@@ -307,8 +307,15 @@ export async function createPet(
   return { success: true, pet: hydratePet(persistedPet) };
 }
 
-export async function updatePet(pet: PetModel): Promise<void> {
-  if (db && auth?.currentUser) {
+export async function updatePet(
+  pet: PetModel,
+  options: { persistIdentity?: boolean } = {},
+): Promise<void> {
+  const persistIdentity = options.persistIdentity ?? true;
+
+  // Gameplay stats are intentionally local. Only identity fields that belong
+  // to the Firestore blueprint are persisted remotely.
+  if (persistIdentity && db && auth?.currentUser) {
     try {
       await setDoc(doc(db, 'pets', pet.petId), {
         name: pet.name.trim(),
@@ -320,6 +327,8 @@ export async function updatePet(pet: PetModel): Promise<void> {
     }
   }
 
+  // Keep the minimal pet identity locally together with the in-memory state
+  // reconstruction. Runtime stats never become Firestore fields.
   const localPets = getLocalPets();
   localPets[pet.petId] = toPersistedPet(pet);
   saveLocalPets(localPets);
