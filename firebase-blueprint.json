@@ -2,144 +2,46 @@
   "entities": {
     "Player": {
       "title": "Player",
-      "description": "User profile with secure secret hash and login metadata",
+      "description": "Mascoticas IA player account",
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Player identifier / normalized nickname",
-          "maxLength": 64
-        },
-        "nickname": {
-          "type": "string",
-          "description": "Display nickname of the player",
-          "maxLength": 64
-        },
-        "secretHash": {
-          "type": "string",
-          "description": "Cryptographic hash of the secret word (never plaintext)",
-          "maxLength": 128
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "ISO timestamp of creation"
-        },
-        "lastLogin": {
-          "type": "string",
-          "description": "ISO timestamp of last login"
-        }
+        "nickname": { "type": "string", "maxLength": 64 },
+        "secretHash": { "type": "string", "maxLength": 128 }
       },
-      "required": ["id", "nickname", "secretHash", "createdAt", "lastLogin"]
+      "required": ["nickname", "secretHash"]
     },
     "Pet": {
       "title": "Pet",
-      "description": "Virtual pet state including species, personality, emotions, and care indicators",
+      "description": "Minimal persistent pet identity",
       "type": "object",
       "properties": {
-        "petId": {
-          "type": "string",
-          "description": "Unique pet identifier",
-          "maxLength": 64
-        },
-        "ownerId": {
-          "type": "string",
-          "description": "Owner player identifier",
-          "maxLength": 64
-        },
-        "type": {
-          "type": "string",
-          "description": "Species key (e.g. fox, turtle, rabbit, panda, fish, koala)",
-          "maxLength": 32
-        },
-        "name": {
-          "type": "string",
-          "description": "Custom name chosen by the user for the pet",
-          "maxLength": 64
-        },
-        "personality": {
-          "type": "string",
-          "description": "Predefined personality archetype",
-          "maxLength": 32
-        },
-        "level": {
-          "type": "number",
-          "description": "Care bonding level"
-        },
-        "experience": {
-          "type": "number",
-          "description": "Care experience points"
-        },
-        "hunger": {
-          "type": "number",
-          "description": "Fullness level (0-100)"
-        },
-        "happiness": {
-          "type": "number",
-          "description": "Happiness level (0-100)"
-        },
-        "energy": {
-          "type": "number",
-          "description": "Energy level (0-100)"
-        },
-        "health": {
-          "type": "number",
-          "description": "Health status indicator (0-100)"
-        },
-        "age": {
-          "type": "number",
-          "description": "Age in days"
-        },
-        "coins": {
-          "type": "number",
-          "description": "Virtual pet treats/coins"
-        },
-        "evolution": {
-          "type": "string",
-          "description": "Evolution stage (e.g. baby, child, companion)",
-          "maxLength": 32
-        },
-        "status": {
-          "type": "string",
-          "description": "Active status or adopted/archived",
-          "maxLength": 32
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "ISO timestamp of adoption"
-        },
-        "lastPlayed": {
-          "type": "string",
-          "description": "ISO timestamp of last interaction"
-        },
-        "lastFed": {
-          "type": "string",
-          "description": "ISO timestamp of last feeding"
-        },
-        "lastSlept": {
-          "type": "string",
-          "description": "ISO timestamp of last sleep"
-        },
-        "eventDay": {
-          "type": "number",
-          "description": "Current sequential day counter for pet milestones"
-        },
-        "customSpriteUrl": {
-          "type": "string",
-          "description": "Optional custom 3x3 sprite sheet URL or base64",
-          "maxLength": 10000
-        }
+        "name": { "type": "string", "maxLength": 64 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "maxLength": 32 }
       },
-      "required": ["petId", "ownerId", "type", "name", "personality", "level", "hunger", "happiness", "energy", "createdAt"]
+      "required": ["name", "ownerId", "type"]
+    },
+    "Visit": {
+      "title": "Visit",
+      "description": "Minimal Mascoticas visit analytics",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "petId": { "type": "string", "maxLength": 128 },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["userId", "petId", "timestamp"]
     }
   },
   "firestore": {
     "/players/{playerId}": {
-      "schema": "Player",
-      "description": "Player accounts with hashed credentials"
+      "schema": "Player"
     },
     "/pets/{petId}": {
-      "schema": "Pet",
-      "description": "Individual virtual pets owned by players"
+      "schema": "Pet"
+    },
+    "/visits/{visitId}": {
+      "schema": "Visit"
     }
   }
 }
