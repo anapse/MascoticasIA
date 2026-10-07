@@ -18,10 +18,6 @@ import {
   signOut,
 } from 'firebase/auth';
 
-const STORAGE_PLAYERS_KEY = 'mascoticas_players_v1';
-const STORAGE_PETS_KEY = 'mascoticas_pets_v1';
-const CURRENT_SESSION_KEY = 'mascoticas_current_session_v1';
-
 export const MAX_PETS_PER_PLAYER = 3;
 export const DAILY_AI_MESSAGE_LIMIT = 20;
 
@@ -71,55 +67,27 @@ function toPersistedPet(pet: PetModel): PersistedPet {
   };
 }
 
-function getLocalPlayers(): Record<string, PlayerModel> {
-  try {
-    const raw = localStorage.getItem(STORAGE_PLAYERS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveLocalPlayers(players: Record<string, PlayerModel>) {
-  try {
-    localStorage.setItem(STORAGE_PLAYERS_KEY, JSON.stringify(players));
-  } catch {}
-}
-
-function getLocalPets(): Record<string, PersistedPet> {
-  try {
-    const raw = localStorage.getItem(STORAGE_PETS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveLocalPets(pets: Record<string, PersistedPet>) {
-  try {
-    localStorage.setItem(STORAGE_PETS_KEY, JSON.stringify(pets));
-  } catch {}
-}
-
 export async function findPlayerByName(nickname: string): Promise<PlayerModel | null> {
   const playerId = normalizePlayerId(nickname);
 
-  if (db && auth?.currentUser) {
-    try {
-      const playerDoc = await getDoc(doc(db, 'players', playerId));
-      if (playerDoc.exists()) {
-        return {
-          id: playerDoc.id,
-          ...(playerDoc.data() as Omit<PlayerModel, 'id' | 'createdAt' | 'lastLogin'>),
-        } as PlayerModel;
-      }
-    } catch (err) {
-      handleFirestoreError(err, OperationType.GET, `players/${playerId}`);
-    }
-  }
+  if (!db || !auth?.currentUser) return null;
 
-  const localPlayer = getLocalPlayers()[playerId];
-  return localPlayer || null;
+  try {
+    const playerDoc = await getDoc(doc(db, 'players', playerId));
+    if (!playerDoc.exists()) return null;
+
+    const data = playerDoc.data() as Omit<PlayerModel, 'id'>;
+    return {
+      id: playerDoc.id,
+      nickname: data.nickname,
+      secretHash: data.secretHash,
+      createdAt: data.createdAt,
+      lastLogin: data.lastLogin,
+    };
+  } catch (err) {
+    handleFirestoreError(err, OperationType.GET, `players/${playerId}`);
+    return null;
+  }
 }
 
 export async function createPlayer(
@@ -174,10 +142,6 @@ export async function createPlayer(
     }
   }
 
-  const localPlayers = getLocalPlayers();
-  localPlayers[playerId] = player;
-  saveLocalPlayers(localPlayers);
-  saveCurrentSession(player);
   return { success: true, player };
 }
 
@@ -202,70 +166,70 @@ export async function loginPlayer(
     }
   }
 
-  let player: PlayerModel | null = null;
-
-  if (db) {
-    try {
-      const snap = await getDoc(doc(db, 'players', playerId));
-      if (snap.exists()) {
-        const data = snap.data() as Omit<PlayerModel, 'id' | 'createdAt' | 'lastLogin'>;
-        player = {
-          id: playerId,
-          nickname: data.nickname,
-          secretHash: data.secretHash,
-          createdAt: '',
-          lastLogin: new Date().toISOString(),
-        };
-      }
-    } catch (err) {
-      handleFirestoreError(err, OperationType.GET, `players/${playerId}`);
-    }
-  }
-
-  if (!player) {
-    const localPlayer = getLocalPlayers()[playerId];
-    if (localPlayer) {
-      const secretHash = await hashSecret(secretWord);
-      if (localPlayer.secretHash !== secretHash) {
-        return { success: false, error: 'WRONG_SECRET' };
-      }
-      player = { ...localPlayer, lastLogin: new Date().toISOString() };
-    }
-  }
-
-  if (!player) {
+  if (!db || !auth?.currentUser) {
     if (auth?.currentUser) {
       try { await signOut(auth); } catch {}
     }
+    return { success: false, error: 'No se pudo conectar con Firebase' };
+  }
+
+  let player: PlayerModel | null = null;
+
+  try {
+    const snap = await getDoc(doc(db, 'players', playerId));
+    if (snap.exists()) {
+      const data = snap.data() as Omit<PlayerModel, 'id'>;
+      player = {
+        id: playerId,
+        nickname: data.nickname,
+        secretHash: data.secretHash,
+        createdAt: data.createdAt,
+        lastLogin: data.lastLogin,
+      };
+    }
+  } catch (err) {
+    handleFirestoreError(err, OperationType.GET, `players/${playerId}`);
+  }
+
+  if (!player) {
+    try { await signOut(auth); } catch {}
     return { success: false, error: 'NOT_FOUND' };
   }
 
-  const localPlayers = getLocalPlayers();
-  localPlayers[player.id] = player;
-  saveLocalPlayers(localPlayers);
-  saveCurrentSession(player);
+  // Update lastLogin only once per successful login.
+  const lastLogin = new Date().toISOString();
+  player = { ...player, lastLogin };
+
+  try {
+    await setDoc(doc(db, 'players', player.id), {
+      nickname: player.nickname,
+      secretHash: player.secretHash,
+      createdAt: player.createdAt,
+      lastLogin,
+    });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.UPDATE, `players/${player.id}`);
+    try { await signOut(auth); } catch {}
+    return { success: false, error: 'No se pudo actualizar el acceso en Firebase' };
+  }
+
   return { success: true, player };
 }
 
 export async function getPetsForOwner(ownerId: string): Promise<PetModel[]> {
-  if (db && auth?.currentUser) {
-    try {
-      const q = query(collection(db, 'pets'), where('ownerId', '==', ownerId));
-      const snapshot = await getDocs(q);
-      const pets = snapshot.docs.map((snap) =>
-        hydratePet({ petId: snap.id, ...(snap.data() as Omit<PersistedPet, 'petId'>) })
-      );
-      if (pets.length > 0 || snapshot.empty) {
-        return pets;
-      }
-    } catch (err) {
-      handleFirestoreError(err, OperationType.LIST, 'pets');
-    }
-  }
+  if (!db || !auth?.currentUser) return [];
 
-  return Object.values(getLocalPets())
-    .filter((pet) => pet.ownerId === ownerId)
-    .map(hydratePet);
+  try {
+    const q = query(collection(db, 'pets'), where('ownerId', '==', ownerId));
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map((snap) =>
+      hydratePet({ petId: snap.id, ...(snap.data() as Omit<PersistedPet, 'petId'>) })
+    );
+  } catch (err) {
+    handleFirestoreError(err, OperationType.LIST, 'pets');
+    return [];
+  }
 }
 
 export async function createPet(
@@ -300,10 +264,6 @@ export async function createPet(
     }
   }
 
-  const localPets = getLocalPets();
-  localPets[petId] = persistedPet;
-  saveLocalPets(localPets);
-
   return { success: true, pet: hydratePet(persistedPet) };
 }
 
@@ -311,27 +271,20 @@ export async function updatePet(
   pet: PetModel,
   options: { persistIdentity?: boolean } = {},
 ): Promise<void> {
-  const persistIdentity = options.persistIdentity ?? true;
+  // Runtime gameplay state is deliberately NOT persisted in Firestore.
+  // Only the pet identity fields defined by the blueprint are written.
+  if (!options.persistIdentity && options.persistIdentity !== undefined) return;
+  if (!db || !auth?.currentUser) return;
 
-  // Gameplay stats are intentionally local. Only identity fields that belong
-  // to the Firestore blueprint are persisted remotely.
-  if (persistIdentity && db && auth?.currentUser) {
-    try {
-      await setDoc(doc(db, 'pets', pet.petId), {
-        name: pet.name.trim(),
-        ownerId: pet.ownerId,
-        type: pet.type,
-      });
-    } catch (err) {
-      handleFirestoreError(err, OperationType.UPDATE, `pets/${pet.petId}`);
-    }
+  try {
+    await setDoc(doc(db, 'pets', pet.petId), {
+      name: pet.name.trim(),
+      ownerId: pet.ownerId,
+      type: pet.type,
+    });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.UPDATE, `pets/${pet.petId}`);
   }
-
-  // Keep the minimal pet identity locally together with the in-memory state
-  // reconstruction. Runtime stats never become Firestore fields.
-  const localPets = getLocalPets();
-  localPets[pet.petId] = toPersistedPet(pet);
-  saveLocalPets(localPets);
 }
 
 export async function adoptPet(petId: string): Promise<boolean> {
@@ -344,9 +297,6 @@ export async function adoptPet(petId: string): Promise<boolean> {
     }
   }
 
-  const localPets = getLocalPets();
-  delete localPets[petId];
-  saveLocalPets(localPets);
   return true;
 }
 
@@ -369,24 +319,6 @@ export async function recordVisit(userId: string, petId: string): Promise<void> 
 export async function logoutFirebase(): Promise<void> {
   if (auth?.currentUser) {
     try { await signOut(auth); } catch {}
-  }
-  saveCurrentSession(null);
-}
-
-export function saveCurrentSession(player: PlayerModel | null) {
-  if (player) {
-    localStorage.setItem(CURRENT_SESSION_KEY, JSON.stringify(player));
-  } else {
-    localStorage.removeItem(CURRENT_SESSION_KEY);
-  }
-}
-
-export function getCurrentSession(): PlayerModel | null {
-  try {
-    const raw = localStorage.getItem(CURRENT_SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
   }
 }
 
