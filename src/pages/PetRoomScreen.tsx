@@ -577,20 +577,20 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
   }, [messages, isThinking]);
 
   const haloColor =
-    currentEmotion === 'molesto' ? 'rgba(239,68,68,0.30)' :
-    currentEmotion === 'risa' ? 'rgba(56,189,248,0.32)' :
-    currentEmotion === 'feliz' ? 'rgba(59,130,246,0.28)' :
-    currentEmotion === 'curioso' ? 'rgba(168,85,247,0.25)' :
-    currentEmotion === 'sorpresa' ? 'rgba(250,204,21,0.28)' :
-    currentEmotion === 'durmiendo' ? 'rgba(99,102,241,0.24)' :
-    currentEmotion === 'comiendo' ? 'rgba(249,115,22,0.28)' :
-    'rgba(56,189,248,0.24)';
+    currentEmotion === 'molesto' ? 'rgba(239,68,68,0.52)' :
+    currentEmotion === 'risa' ? 'rgba(56,189,248,0.54)' :
+    currentEmotion === 'feliz' ? 'rgba(59,130,246,0.50)' :
+    currentEmotion === 'curioso' ? 'rgba(168,85,247,0.50)' :
+    currentEmotion === 'sorpresa' ? 'rgba(250,204,21,0.52)' :
+    currentEmotion === 'durmiendo' ? 'rgba(79,70,229,0.48)' :
+    currentEmotion === 'comiendo' ? 'rgba(249,115,22,0.52)' :
+    'rgba(56,189,248,0.48)';
 
   return (
     <div className="w-full h-full relative flex flex-col p-3 select-text overflow-hidden font-['Nunito']">
       <style>{`
-        @keyframes mascotHaloPulse { 0%,100% { transform:scale(.92); opacity:.55 } 50% { transform:scale(1.08); opacity:1 } }
-        @keyframes mascotDisco { 0%,100% { background:rgba(59,130,246,.26) } 20% { background:rgba(168,85,247,.28) } 40% { background:rgba(236,72,153,.28) } 60% { background:rgba(34,197,94,.28) } 80% { background:rgba(250,204,21,.30) } }
+        @keyframes mascotHaloPulse { 0%,100% { transform:scale(.94); opacity:.72 } 50% { transform:scale(1.06); opacity:1 } }
+        @keyframes mascotDisco { 0%,100% { background:rgba(59,130,246,.48) } 20% { background:rgba(168,85,247,.50) } 40% { background:rgba(236,72,153,.50) } 60% { background:rgba(34,197,94,.48) } 80% { background:rgba(250,204,21,.52) } }
         @keyframes mascotShake { 0%,100% { transform:translateX(0) } 20% { transform:translateX(-4px) } 40% { transform:translateX(4px) } 60% { transform:translateX(-3px) } 80% { transform:translateX(3px) } }
         .mascot-selectable { user-select:text !important; -webkit-user-select:text !important; -webkit-touch-callout:default; }
       `}</style>
@@ -631,10 +631,10 @@ export const PetRoomScreen: React.FC<PetRoomScreenProps> = ({
 
         <div className="relative flex items-center justify-center mt-0.5">
           <div
-            className={`absolute w-44 h-44 sm:w-52 sm:h-52 rounded-full blur-2xl pointer-events-none ${ignoredShake ? 'mascot-shake' : ''}`}
+            className={`absolute w-56 h-56 sm:w-64 sm:h-64 rounded-full blur-3xl pointer-events-none ${ignoredShake ? 'mascot-shake' : ''}`}
             style={animationType === 'dance'
               ? { animation: 'mascotDisco 1.8s ease-in-out infinite' }
-              : { background: `radial-gradient(circle, ${haloColor} 0%, rgba(255,255,255,0) 72%)`, animation: 'mascotHaloPulse 2.4s ease-in-out 2' }}
+              : { background: `radial-gradient(circle, ${haloColor} 0%, ${haloColor} 42%, rgba(255,255,255,0) 80%)`, animation: 'mascotHaloPulse 2.4s ease-in-out 2' }}
           />
           <SpriteSheetRenderer pet={activePet} emotion={currentEmotion} animationType={animationType} size="hero"
             onClick={() => {
